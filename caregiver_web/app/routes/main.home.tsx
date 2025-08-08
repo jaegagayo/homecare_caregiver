@@ -7,8 +7,7 @@ import {
   Heading, 
   Text, 
   Button,
-  Badge,
-  Separator
+  Badge
 } from "@radix-ui/themes";
 import { 
   Calendar, 
@@ -16,9 +15,6 @@ import {
   MapPin, 
   User, 
   DollarSign,
-  TrendingUp,
-  CheckCircle,
-  AlertCircle,
   Users
 } from "lucide-react";
 
@@ -171,7 +167,7 @@ export default function HomePage() {
                         <Flex align="center" gap="2">
                           <Clock size={16} className="text-gray-500" />
                           <Text size="2" weight="medium">{schedule.time}</Text>
-                          <Badge color={getStatusColor(schedule.status) as any}>
+                          <Badge color={getStatusColor(schedule.status) as "blue" | "green" | "red" | "gray"}>
                             {getStatusText(schedule.status)}
                           </Badge>
                         </Flex>
