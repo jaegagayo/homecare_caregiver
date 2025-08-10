@@ -11,6 +11,7 @@ import {
   Callout,
   Select
 } from "@radix-ui/themes";
+import { ArrowLeft } from "lucide-react";
 
 
 export default function Signup() {
@@ -32,6 +33,10 @@ export default function Signup() {
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleGoBack = () => {
+    navigate(-1);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -63,11 +68,16 @@ export default function Signup() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* 헤더 */}
       <div className="bg-white border-b border-gray-200 px-4 py-3">
-        <Flex align="center" gap="3">
-          <div className="w-8 h-8 bg-accent-2 rounded-full flex items-center justify-center">
-            <div className="w-4 h-4 text-accent">🏥</div>
-          </div>
-          <Text size="4" weight="medium">케어기버</Text>
+        <Flex justify="between" align="center">
+          <Flex align="center" gap="3">
+            <Button variant="ghost" size="2" onClick={handleGoBack}>
+              <ArrowLeft size={16} />
+            </Button>
+            <div className="w-8 h-8 bg-accent-2 rounded-full flex items-center justify-center">
+              <div className="w-4 h-4 text-accent">🏥</div>
+            </div>
+            <Text size="4" weight="medium">케어기버</Text>
+          </Flex>
         </Flex>
       </div>
 

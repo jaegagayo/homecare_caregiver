@@ -10,7 +10,7 @@ import {
   Calendar, 
   Wallet, 
   Users,
-  LogOut,
+  User,
   ArrowLeft
 } from "lucide-react";
 
@@ -37,10 +37,8 @@ export default function MainLayout() {
     else if (path.includes("/main/matching")) setCurrentTab(3);
   }, [navigate, location]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("caregiver_token");
-    localStorage.removeItem("caregiver_email");
-    navigate("/");
+  const handleProfile = () => {
+    navigate("/main/profile");
   };
 
   const handleGoBack = () => {
@@ -72,13 +70,10 @@ export default function MainLayout() {
             <Button variant="ghost" size="2" onClick={handleGoBack}>
               <ArrowLeft size={16} />
             </Button>
-            <div className="w-8 h-8 bg-accent-2 rounded-full flex items-center justify-center">
-              <div className="w-4 h-4 text-accent">🏥</div>
-            </div>
             <Text size="4" weight="medium">케어기버</Text>
           </Flex>
-          <Button variant="ghost" size="2" onClick={handleLogout}>
-            <LogOut size={16} />
+          <Button variant="ghost" size="2" onClick={handleProfile}>
+            <User size={16} />
           </Button>
         </Flex>
       </div>
