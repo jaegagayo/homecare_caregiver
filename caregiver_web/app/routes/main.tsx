@@ -10,7 +10,8 @@ import {
   Calendar, 
   Wallet, 
   Users,
-  LogOut
+  LogOut,
+  ArrowLeft
 } from "lucide-react";
 
 export default function MainLayout() {
@@ -42,6 +43,10 @@ export default function MainLayout() {
     navigate("/");
   };
 
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+
   const tabs = [
     { id: 0, label: "홈", icon: Home, path: "/main/home" },
     { id: 1, label: "일정", icon: Calendar, path: "/main/schedule" },
@@ -60,12 +65,15 @@ export default function MainLayout() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 헤더 */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3">
+      {/* 고정 헤더 */}
+      <div className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 px-4 py-3 z-50">
         <Flex justify="between" align="center">
           <Flex align="center" gap="3">
-            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-              <div className="w-4 h-4 text-blue-600">🏥</div>
+            <Button variant="ghost" size="2" onClick={handleGoBack}>
+              <ArrowLeft size={16} />
+            </Button>
+            <div className="w-8 h-8 bg-accent-2 rounded-full flex items-center justify-center">
+              <div className="w-4 h-4 text-accent">🏥</div>
             </div>
             <Text size="4" weight="medium">케어기버</Text>
           </Flex>
@@ -75,14 +83,14 @@ export default function MainLayout() {
         </Flex>
       </div>
 
-      {/* 메인 콘텐츠 */}
-      <div className="flex-1 pb-20">
+      {/* 메인 콘텐츠 - 헤더 높이만큼 패딩 추가 */}
+      <div className="pt-16 pb-20">
         <Outlet />
       </div>
 
       {/* 하단 네비게이션 */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
-        <Flex justify="between" className="px-4 py-2">
+        <Flex justify="between" className="px-8 py-3">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = currentTab === tab.id;
@@ -92,13 +100,13 @@ export default function MainLayout() {
                 key={tab.id}
                 variant="ghost"
                 size="2"
-                className={`flex flex-col items-center gap-1 p-2 ${
-                  isActive ? "text-blue-600" : "text-gray-500"
+                className={`flex flex-col items-center gap-1 px-8 py-2 ${
+                  isActive ? "text-accent" : "text-gray-500"
                 }`}
                 onClick={() => handleTabChange(tab.id)}
               >
                 <Icon size={20} />
-                <Text size="1" className={isActive ? "text-blue-600" : "text-gray-500"}>
+                <Text size="1" className={isActive ? "text-accent" : "text-gray-500"}>
                   {tab.label}
                 </Text>
               </Button>
