@@ -76,13 +76,13 @@ export default function CaregiverEarningsPage() {
         <Card>
           <div className="p-4">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-green-600">₩</span>
+              <span style={{ color: 'var(--accent-9)' }}>₩</span>
               <span className="font-medium">이번 달 수익</span>
             </div>
             <div className="text-2xl font-bold">
               {earnings.currentMonth.toLocaleString()}원
             </div>
-            <div className="text-sm text-green-600 flex items-center gap-1">
+            <div className="text-sm flex items-center gap-1" style={{ color: 'var(--accent-9)' }}>
               <span>↗</span>
               +{((earnings.currentMonth - earnings.previousMonth) / earnings.previousMonth * 100).toFixed(1)}%
             </div>
@@ -103,7 +103,7 @@ export default function CaregiverEarningsPage() {
         <Card>
           <div className="p-4">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-blue-600">₩</span>
+              <span style={{ color: 'var(--accent-9)' }}>₩</span>
               <span className="font-medium">시급</span>
             </div>
             <div className="text-2xl font-bold">
@@ -116,7 +116,7 @@ export default function CaregiverEarningsPage() {
         <Card>
           <div className="p-4">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-purple-600">📋</span>
+              <span style={{ color: 'var(--accent-9)' }}>📋</span>
               <span className="font-medium">서비스 건수</span>
             </div>
             <div className="text-2xl font-bold">{earnings.services}건</div>
@@ -163,7 +163,7 @@ export default function CaregiverEarningsPage() {
                   <div className="text-right">
                     <div className="font-bold">{transaction.amount.toLocaleString()}원</div>
                     <div className="text-sm text-gray-600">{transaction.hours}시간</div>
-                    <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                    <span className="px-2 py-1 text-xs rounded-full" style={{ backgroundColor: 'var(--accent-3)', color: 'var(--accent-11)' }}>
                       {transaction.status}
                     </span>
                   </div>

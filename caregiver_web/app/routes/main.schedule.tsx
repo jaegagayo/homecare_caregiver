@@ -147,8 +147,7 @@ export default function SchedulePage() {
     <Container size="2" className="p-4">
       <Flex direction="column" gap="6">
         {/* 헤더 */}
-        <Flex justify="between" align="center">
-          <Heading size="5">일정 관리</Heading>
+        <Flex justify="end">
           <Button size="2">
             <Plus size={16} />
             새 일정
@@ -166,7 +165,7 @@ export default function SchedulePage() {
             </div>
             <div className="flex-1 min-w-0">
               <Text size="2" color="gray">완료된 일정</Text>
-              <Text size="4" weight="bold" className="text-green-600">
+              <Text size="4" weight="bold" style={{ color: 'var(--accent-9)' }}>
                 {schedules.filter(s => s.status === 'completed').length}건
               </Text>
             </div>

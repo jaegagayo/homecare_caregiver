@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "@remix-run/react";
 import { 
   Card, 
   Container, 
@@ -8,7 +9,6 @@ import {
   Button,
   Badge,
   Select,
-  Tabs,
   Dialog
 } from "@radix-ui/themes";
 import { 
@@ -16,10 +16,7 @@ import {
   MapPin, 
   Clock, 
   Calendar,
-  DollarSign,
   User,
-  Phone,
-  Info,
   Check,
   X
 } from "lucide-react";
@@ -43,8 +40,9 @@ interface Matching {
 }
 
 export default function MatchingPage() {
+  const navigate = useNavigate();
   const [matchings, setMatchings] = useState<Matching[]>([]);
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('date');
   const [selectedMatching, setSelectedMatching] = useState<Matching | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -59,7 +57,7 @@ export default function MatchingPage() {
           id: "1",
           clientName: "김영희",
           clientAge: 75,
-          clientGender: "여성",
+          clientGender: "여",
           address: "서울시 강남구 역삼동",
           serviceType: "방문요양",
           date: "2024-01-20",
@@ -76,7 +74,7 @@ export default function MatchingPage() {
           id: "2",
           clientName: "박철수",
           clientAge: 82,
-          clientGender: "남성",
+          clientGender: "남",
           address: "서울시 서초구 서초동",
           serviceType: "방문요양",
           date: "2024-01-21",
@@ -93,7 +91,7 @@ export default function MatchingPage() {
           id: "3",
           clientName: "이순자",
           clientAge: 78,
-          clientGender: "여성",
+          clientGender: "여",
           address: "서울시 마포구 합정동",
           serviceType: "방문요양",
           date: "2024-01-19",
@@ -110,7 +108,7 @@ export default function MatchingPage() {
           id: "4",
           clientName: "최민수",
           clientAge: 85,
-          clientGender: "남성",
+          clientGender: "남",
           address: "서울시 송파구 문정동",
           serviceType: "방문요양",
           date: "2024-01-22",
@@ -119,7 +117,7 @@ export default function MatchingPage() {
           hourlyRate: 17000,
           totalAmount: 34000,
           status: "pending",
-          description: "시각 장애가 있으신 어르신입니다. 음성으로 상황을 설명해주시고 안전하게 보호해주세요.",
+          description: "시각 장애가 있으신 어르신입니다. 큰소리로 상황을 설명해주시고 안전에 유의해 주셨으면 좋겠습니다...!",
           requirements: ["시각 장애 케어 경험", "음성 안내 능력", "안전 관리 능력"],
           contactPhone: "010-4567-8901"
         }
@@ -131,32 +129,19 @@ export default function MatchingPage() {
     loadData();
   }, []);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending': return 'yellow';
-      case 'accepted': return 'green';
-      case 'rejected': return 'red';
-      case 'completed': return 'blue';
-      default: return 'gray';
-    }
-  };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'pending': return '대기중';
-      case 'accepted': return '수락됨';
-      case 'rejected': return '거절됨';
-      case 'completed': return '완료';
-      default: return '알 수 없음';
-    }
-  };
 
-  const filteredMatchings = matchings.filter(matching => {
-    if (selectedStatus !== 'all' && matching.status !== selectedStatus) {
-      return false;
-    }
-    return true;
-  });
+  const sortedMatchings = matchings
+    .filter(matching => matching.status === 'pending' || matching.status === 'completed')
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'hourlyRate':
+          return b.hourlyRate - a.hourlyRate; // 시급 높은 순
+        case 'date':
+        default:
+          return new Date(a.date).getTime() - new Date(b.date).getTime(); // 날짜 빠른 순
+      }
+    });
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -165,22 +150,6 @@ export default function MatchingPage() {
       day: 'numeric',
       weekday: 'short'
     });
-  };
-
-  const handleAccept = (matchingId: string) => {
-    setMatchings(prev => 
-      prev.map(m => 
-        m.id === matchingId ? { ...m, status: 'accepted' as const } : m
-      )
-    );
-  };
-
-  const handleReject = (matchingId: string) => {
-    setMatchings(prev => 
-      prev.map(m => 
-        m.id === matchingId ? { ...m, status: 'rejected' as const } : m
-      )
-    );
   };
 
   const handleViewDetails = (matching: Matching) => {
@@ -199,63 +168,64 @@ export default function MatchingPage() {
   return (
     <Container size="2" className="p-4">
       <Flex direction="column" gap="6">
-        {/* 헤더 */}
+        {/* 헤더 및 필터 */}
         <Flex justify="between" align="center">
-          <Heading size="5">매칭 관리</Heading>
-          <Badge color="blue">
-            {matchings.filter(m => m.status === 'pending').length}건 대기중
-          </Badge>
-        </Flex>
+          {matchings.filter(m => m.status === 'pending').length > 0 && (
+            <Heading size="4">
+              {matchings.filter(m => m.status === 'pending').length}건의 대기중인 매칭이 있어요
+            </Heading>
+          )}
+          <Select.Root value={sortBy} onValueChange={setSortBy}>
+            <Select.Trigger placeholder="정렬 기준" />
+            <Select.Content>
+              <Select.Item value="date">시작 날짜순</Select.Item>
+              <Select.Item value="hourlyRate">시급순</Select.Item>
+            </Select.Content>
+          </Select.Root>
+                  </Flex>
 
-        {/* 통계 카드 */}
-        <Card className="p-4">
-          <Flex gap="4" className="flex-wrap">
-            <div className="flex-1 min-w-0">
-              <Text size="2" color="gray">대기중</Text>
-              <Text size="4" weight="bold" className="text-yellow-600">
-                {matchings.filter(m => m.status === 'pending').length}건
-              </Text>
-            </div>
-            <div className="flex-1 min-w-0">
-              <Text size="2" color="gray">수락됨</Text>
-              <Text size="4" weight="bold" className="text-green-600">
-                {matchings.filter(m => m.status === 'accepted').length}건
-              </Text>
-            </div>
-            <div className="flex-1 min-w-0">
-              <Text size="2" color="gray">완료</Text>
-              <Text size="4" weight="bold" className="text-blue-600">
-                {matchings.filter(m => m.status === 'completed').length}건
-              </Text>
-            </div>
-            <div className="flex-1 min-w-0">
-              <Text size="2" color="gray">예상 수익</Text>
-              <Text size="4" weight="bold">
-                ₩{matchings
-                  .filter(m => m.status === 'pending' || m.status === 'accepted')
-                  .reduce((sum, m) => sum + m.totalAmount, 0)
-                  .toLocaleString()}
-              </Text>
-            </div>
-          </Flex>
-        </Card>
+          {/* 내 근무 조건 확인 영역 */}
+          <Card className="p-4">
+            <Flex direction="column" gap="3">
+              <Flex justify="between" align="center">
+                <Text size="3" weight="medium">내 근무 조건</Text>
+                <Button 
+                  variant="ghost" 
+                  size="2"
+                  onClick={() => navigate('/main/work-conditions')}
+                >
+                  자세히 보기
+                </Button>
+              </Flex>
+              
+              <Flex direction="column" gap="2">
+                <Flex justify="between" align="center">
+                  <Text size="2" color="gray">희망 시급</Text>
+                  <Text size="2" weight="medium">₩15,000 ~ ₩20,000</Text>
+                </Flex>
+                
+                <Flex justify="between" align="center">
+                  <Text size="2" color="gray">근무 가능 시간</Text>
+                  <Text size="2" weight="medium">평일 09:00-18:00</Text>
+                </Flex>
+                
+                <Flex justify="between" align="center">
+                  <Text size="2" color="gray">근무 가능 지역</Text>
+                  <Text size="2" weight="medium">서울시 강남구, 서초구</Text>
+                </Flex>
+                
+                <Flex justify="between" align="center">
+                  <Text size="2" color="gray">선호 서비스</Text>
+                  <Text size="2" weight="medium">방문요양, 방문목욕</Text>
+                </Flex>
+              </Flex>
+            </Flex>
+          </Card>
 
-        {/* 필터 */}
-        <Select.Root value={selectedStatus} onValueChange={setSelectedStatus}>
-          <Select.Trigger placeholder="상태별 필터" />
-          <Select.Content>
-            <Select.Item value="all">전체</Select.Item>
-            <Select.Item value="pending">대기중</Select.Item>
-            <Select.Item value="accepted">수락됨</Select.Item>
-            <Select.Item value="rejected">거절됨</Select.Item>
-            <Select.Item value="completed">완료</Select.Item>
-          </Select.Content>
-        </Select.Root>
-
-        {/* 매칭 목록 */}
+          {/* 매칭 목록 */}
         <Flex direction="column" gap="3">
-          {filteredMatchings.length > 0 ? (
-            filteredMatchings.map((matching) => (
+          {sortedMatchings.length > 0 ? (
+            sortedMatchings.map((matching) => (
               <Card key={matching.id} className="p-4">
                 <Flex direction="column" gap="3">
                   <Flex justify="between" align="start">
@@ -266,8 +236,8 @@ export default function MatchingPage() {
                         <Text size="1" color="gray">
                           ({matching.clientAge}세, {matching.clientGender})
                         </Text>
-                        <Badge color={getStatusColor(matching.status) as any}>
-                          {getStatusText(matching.status)}
+                        <Badge color="blue">
+                          {matching.serviceType}
                         </Badge>
                       </Flex>
                       <Flex align="center" gap="2">
@@ -282,7 +252,6 @@ export default function MatchingPage() {
                         <MapPin size={16} className="text-gray-500" />
                         <Text size="2" color="gray">{matching.address}</Text>
                       </Flex>
-                      <Text size="1" color="gray">{matching.serviceType}</Text>
                     </Flex>
                     <Flex direction="column" align="end" gap="1">
                       <Text size="3" weight="bold">
@@ -295,33 +264,14 @@ export default function MatchingPage() {
                   </Flex>
                   
                   {matching.status === 'pending' && (
-                    <Flex gap="2">
-                      <Button 
-                        size="2" 
-                        variant="outline"
-                        onClick={() => handleViewDetails(matching)}
-                      >
-                        <Info size={16} />
-                        상세보기
-                      </Button>
-                      <Button 
-                        size="2" 
-                        color="green"
-                        onClick={() => handleAccept(matching.id)}
-                      >
-                        <Check size={16} />
-                        수락
-                      </Button>
-                      <Button 
-                        size="2" 
-                        color="red"
-                        variant="outline"
-                        onClick={() => handleReject(matching.id)}
-                      >
-                        <X size={16} />
-                        거절
-                      </Button>
-                    </Flex>
+                    <Button 
+                      size="2" 
+                      variant="solid"
+                      onClick={() => handleViewDetails(matching)}
+                      className="w-full"
+                    >
+                      확인하고 결정하기
+                    </Button>
                   )}
                 </Flex>
               </Card>
@@ -342,51 +292,93 @@ export default function MatchingPage() {
           <Dialog.Content>
             {selectedMatching && (
               <Flex direction="column" gap="4">
-                <Dialog.Title>매칭 상세 정보</Dialog.Title>
-                
-                <Flex direction="column" gap="3">
+                <Flex justify="between" align="center">
+                  <Dialog.Title className="flex items-center">매칭 상세 정보</Dialog.Title>
+                  <Button 
+                    variant="ghost" 
+                    size="2"
+                    onClick={() => setIsDialogOpen(false)}
+                    className="flex items-center gap-1 self-center -mt-4"
+                  >
+                    <X size={16} />
+                    <Text size="2" weight="medium">닫기</Text>
+                  </Button>
+                </Flex>                
+                <Flex direction="column" gap="4">
+                  {/* 고객 정보 섹션 */}
                   <div>
-                    <Text size="2" weight="medium">고객 정보</Text>
-                    <Text size="2">{selectedMatching.clientName} ({selectedMatching.clientAge}세, {selectedMatching.clientGender})</Text>
-                  </div>
-                  
-                  <div>
-                    <Text size="2" weight="medium">서비스 정보</Text>
-                    <Text size="2">{selectedMatching.serviceType}</Text>
-                    <Text size="2">{formatDate(selectedMatching.date)} {selectedMatching.time}</Text>
-                    <Text size="2">{selectedMatching.duration}시간</Text>
-                  </div>
-                  
-                  <div>
-                    <Text size="2" weight="medium">주소</Text>
-                    <Text size="2">{selectedMatching.address}</Text>
-                  </div>
-                  
-                  <div>
-                    <Text size="2" weight="medium">연락처</Text>
-                    <Text size="2">{selectedMatching.contactPhone}</Text>
-                  </div>
-                  
-                  <div>
-                    <Text size="2" weight="medium">서비스 설명</Text>
-                    <Text size="2">{selectedMatching.description}</Text>
-                  </div>
-                  
-                  <div>
-                    <Text size="2" weight="medium">요구사항</Text>
-                    <Flex direction="column" gap="1">
-                      {selectedMatching.requirements.map((req, index) => (
-                        <Text key={index} size="2">• {req}</Text>
-                      ))}
+                    <Flex justify="between" align="center" className="mb-2">
+                      <Text size="2" weight="medium">고객명</Text>
+                      <Text size="3" weight="medium">{selectedMatching.clientName}</Text>
+                    </Flex>
+                    <Flex justify="between" align="center">
+                      <Text size="2" weight="medium">나이/성별</Text>
+                      <Text size="2" color="gray">{selectedMatching.clientAge}세, {selectedMatching.clientGender}</Text>
                     </Flex>
                   </div>
-                  
+
+                  <div className="w-full h-px bg-gray-200"></div>
+
+                  {/* 근무 유형 섹션 */}
                   <div>
-                    <Text size="2" weight="medium">수당</Text>
-                    <Text size="3" weight="bold">₩{selectedMatching.totalAmount.toLocaleString()}</Text>
-                    <Text size="1" color="gray">
-                      {selectedMatching.duration}시간 × ₩{selectedMatching.hourlyRate.toLocaleString()}/시간
-                    </Text>
+                    <Flex justify="between" align="center">
+                      <Text size="2" weight="medium">근무 유형</Text>
+                      <Badge color="blue">{selectedMatching.serviceType}</Badge>
+                    </Flex>
+                  </div>
+
+                  <div className="w-full h-px bg-gray-200"></div>
+
+                  {/* 시간 정보 섹션 */}
+                  <div>
+                    <Flex justify="between" align="center" className="mb-2">
+                      <Text size="2" weight="medium">날짜/시간</Text>
+                      <Text size="2">{formatDate(selectedMatching.date)} {selectedMatching.time}</Text>
+                    </Flex>
+                    <Flex justify="between" align="center">
+                      <Text size="2" weight="medium">근무 시간</Text>
+                      <Text size="2" color="gray">{selectedMatching.duration}시간</Text>
+                    </Flex>
+                  </div>
+
+                  <div className="w-full h-px bg-gray-200"></div>
+
+                  {/* 위치 및 연락처 섹션 */}
+                  <div>
+                    <Flex justify="between" align="center" className="mb-2">
+                      <Text size="2" weight="medium">주소</Text>
+                      <Text size="2">{selectedMatching.address}</Text>
+                    </Flex>
+                    <Flex justify="between" align="center">
+                      <Text size="2" weight="medium">연락처</Text>
+                      <Text size="2" color="gray">{selectedMatching.contactPhone}</Text>
+                    </Flex>
+                  </div>
+
+                  <div className="w-full h-px bg-gray-200"></div>
+
+                  {/* 특이사항 섹션 */}
+                  <div>
+                    <div><Text size="2" weight="medium" className="mb-3">특이사항</Text></div>
+                    <div><Text size="2" className="leading-relaxed whitespace-pre-line">{selectedMatching.description}</Text></div>
+                  </div>
+
+                  <div className="w-full h-px bg-gray-200"></div>
+
+                  {/* 수당 섹션 */}
+                  <div>
+                    <Flex justify="between" align="center" className="mb-2">
+                      <Text size="2" weight="medium">수당</Text>
+                      <Text size="3" weight="bold" style={{ color: 'var(--accent-9)' }}>
+                        ₩{selectedMatching.totalAmount.toLocaleString()}
+                      </Text>
+                    </Flex>
+                    <Flex justify="between" align="center">
+                      <Text size="2" weight="medium">시급</Text>
+                      <Text size="2" color="gray">
+                        ₩{selectedMatching.hourlyRate.toLocaleString()}/시간
+                      </Text>
+                    </Flex>
                   </div>
                 </Flex>
                 
@@ -395,7 +387,11 @@ export default function MatchingPage() {
                     color="green" 
                     className="flex-1"
                     onClick={() => {
-                      handleAccept(selectedMatching.id);
+                      setMatchings(prev => 
+                        prev.map(m => 
+                          m.id === selectedMatching.id ? { ...m, status: 'accepted' as const } : m
+                        )
+                      );
                       setIsDialogOpen(false);
                     }}
                   >
@@ -407,7 +403,11 @@ export default function MatchingPage() {
                     variant="outline"
                     className="flex-1"
                     onClick={() => {
-                      handleReject(selectedMatching.id);
+                      setMatchings(prev => 
+                        prev.map(m => 
+                          m.id === selectedMatching.id ? { ...m, status: 'rejected' as const } : m
+                        )
+                      );
                       setIsDialogOpen(false);
                     }}
                   >

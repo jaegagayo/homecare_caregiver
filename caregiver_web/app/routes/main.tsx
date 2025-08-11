@@ -17,6 +17,7 @@ import {
 export default function MainLayout() {
   const [currentTab, setCurrentTab] = useState(0);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentPageTitle, setCurrentPageTitle] = useState("홈");
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -31,10 +32,23 @@ export default function MainLayout() {
 
     // 현재 경로에 따라 탭 설정
     const path = location.pathname;
-    if (path.includes("/main/home")) setCurrentTab(0);
-    else if (path.includes("/main/schedule")) setCurrentTab(1);
-    else if (path.includes("/main/earnings")) setCurrentTab(2);
-    else if (path.includes("/main/matching")) setCurrentTab(3);
+    if (path.includes("/main/home")) {
+      setCurrentTab(0);
+      setCurrentPageTitle("홈");
+    } else if (path.includes("/main/schedule")) {
+      setCurrentTab(1);
+      setCurrentPageTitle("일정");
+    } else if (path.includes("/main/earnings")) {
+      setCurrentTab(2);
+      setCurrentPageTitle("정산");
+    } else if (path.includes("/main/matching")) {
+      setCurrentTab(3);
+      setCurrentPageTitle("매칭");
+    } else if (path.includes("/main/work-conditions")) {
+      setCurrentPageTitle("근무 조건 설정");
+    } else if (path.includes("/main/profile")) {
+      setCurrentPageTitle("프로필");
+    }
   }, [navigate, location]);
 
   const handleProfile = () => {
@@ -70,7 +84,7 @@ export default function MainLayout() {
             <Button variant="ghost" size="2" onClick={handleGoBack}>
               <ArrowLeft size={16} />
             </Button>
-            <Text size="4" weight="medium">케어기버</Text>
+            <Text size="4" weight="medium">{currentPageTitle}</Text>
           </Flex>
           <Button variant="ghost" size="2" onClick={handleProfile}>
             <User size={16} />
