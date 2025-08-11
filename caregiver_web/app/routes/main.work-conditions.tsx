@@ -39,6 +39,7 @@ export default function WorkConditionsPage() {
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [isFromAnalysis, setIsFromAnalysis] = useState<boolean>(false);
   const [isWorkDaysDialogOpen, setIsWorkDaysDialogOpen] = useState<boolean>(false);
+  const [tempWorkDays, setTempWorkDays] = useState<string[]>([]);
   const [workConditions, setWorkConditions] = useState<WorkConditions>({
     hourlyRate: { min: 0, max: 50000 },
     workDays: ['월', '화', '수', '목', '금', '토', '일'],
@@ -58,7 +59,66 @@ export default function WorkConditionsPage() {
   };
 
   const handleWorkDaysClick = () => {
+    setTempWorkDays([...workConditions.workDays]);
     setIsWorkDaysDialogOpen(true);
+  };
+
+  const handleDayToggle = (day: string) => {
+    setTempWorkDays(prev => 
+      prev.includes(day) 
+        ? prev.filter(d => d !== day)
+        : [...prev, day]
+    );
+  };
+
+  const handleWeekdaySelect = () => {
+    const weekdays = ['월', '화', '수', '목', '금'];
+    const allWeekdaysSelected = weekdays.every(day => tempWorkDays.includes(day));
+    
+    if (allWeekdaysSelected) {
+      // 모든 평일이 선택되어 있으면 평일 전체 해제
+      setTempWorkDays(prev => prev.filter(day => !weekdays.includes(day)));
+    } else {
+      // 평일 전체 선택
+      const nonWeekdays = tempWorkDays.filter(day => !weekdays.includes(day));
+      setTempWorkDays([...nonWeekdays, ...weekdays]);
+    }
+  };
+
+  const handleWeekendSelect = () => {
+    const weekends = ['토', '일'];
+    const allWeekendsSelected = weekends.every(day => tempWorkDays.includes(day));
+    
+    if (allWeekendsSelected) {
+      // 모든 주말이 선택되어 있으면 주말 전체 해제
+      setTempWorkDays(prev => prev.filter(day => !weekends.includes(day)));
+    } else {
+      // 주말 전체 선택
+      const nonWeekends = tempWorkDays.filter(day => !weekends.includes(day));
+      setTempWorkDays([...nonWeekends, ...weekends]);
+    }
+  };
+
+  const isAllWeekdaysSelected = () => {
+    const weekdays = ['월', '화', '수', '목', '금'];
+    return weekdays.every(day => tempWorkDays.includes(day));
+  };
+
+  const isAllWeekendsSelected = () => {
+    const weekends = ['토', '일'];
+    return weekends.every(day => tempWorkDays.includes(day));
+  };
+
+  const handleWorkDaysSave = () => {
+    setWorkConditions(prev => ({
+      ...prev,
+      workDays: tempWorkDays
+    }));
+    setIsWorkDaysDialogOpen(false);
+  };
+
+  const handleWorkDaysCancel = () => {
+    setIsWorkDaysDialogOpen(false);
   };
 
   const handleSave = () => {
@@ -140,13 +200,13 @@ export default function WorkConditionsPage() {
             </div>
 
             <Flex direction="column" gap="4">
-              {/* 근무 가능 일자 섹션 */}
+              {/* 근무 가능 요일 섹션 */}
               <button 
                 className="py-1 px-2 cursor-pointer hover:bg-gray-50 w-full text-left" 
                 onClick={handleWorkDaysClick}
               >
                 <Flex justify="between" align="center">
-                  <Text size="3" weight="medium">근무 가능 일자</Text>
+                  <Text size="3" weight="medium">근무 가능 요일</Text>
                   <Text size="3" weight="medium">{workConditions.workDays.join(', ')}</Text>
                 </Flex>
               </button>
@@ -157,7 +217,7 @@ export default function WorkConditionsPage() {
               <div className="py-1 px-2 cursor-pointer hover:bg-gray-50">
                 <Flex justify="between" align="center">
                   <Text size="3" weight="medium">근무 가능 시간</Text>
-                  <Text size="3" weight="medium">{workConditions.workHours.start}-{workConditions.workHours.end}</Text>
+                  <Text size="3" weight="medium">{workConditions.workHours.start} ~ {workConditions.workHours.end}</Text>
                 </Flex>
               </div>
 
@@ -241,42 +301,112 @@ export default function WorkConditionsPage() {
                 <Button 
                   variant="ghost" 
                   size="2"
-                  onClick={() => setIsWorkDaysDialogOpen(false)}
+                  onClick={handleWorkDaysCancel}
                   className="flex items-center gap-1 self-center -mt-4"
                 >
                   <X size={16} />
                   <Text size="2" weight="medium">닫기</Text>
                 </Button>
               </Flex>
-              
               <Flex direction="column" gap="3">
-                <Text size="2" color="gray">근무 가능한 요일을 선택해주세요</Text>
+                {/* 요일 선택 섹션 */}
+                <Text size="2" weight="medium" className="mb-2">요일 선택</Text>
                 
-                <Flex direction="column" gap="2">
-                  {['월', '화', '수', '목', '금', '토', '일'].map((day) => (
-                    <Flex key={day} align="center" gap="2">
-                      <Checkbox 
-                        defaultChecked={workConditions.workDays.includes(day)}
-                      />
-                      <Text size="2">{day}</Text>
-                    </Flex>
-                  ))}
+                <Flex direction="column" gap="6">
+                  {/* 평일 */}
+                  <Flex gap="4" justify="center">
+                    {['월', '화', '수', '목', '금'].map((day) => (
+                      <button 
+                        key={day} 
+                        className={`aspect-square w-12 h-12 rounded-full text-center cursor-pointer transition-colors flex items-center justify-center ${
+                          tempWorkDays.includes(day) 
+                            ? 'text-white' 
+                            : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                        style={{
+                          backgroundColor: tempWorkDays.includes(day) 
+                            ? 'var(--accent-9)' 
+                            : 'var(--gray-3)'
+                        }}
+                        onClick={() => handleDayToggle(day)}
+                      >
+                        <Text size="3" weight="medium">{day}</Text>
+                      </button>
+                    ))}
+                  </Flex>
+                  
+                  {/* 주말 */}
+                  <Flex gap="4" justify="center">
+                    {['토', '일'].map((day) => (
+                      <button 
+                        key={day} 
+                        className={`aspect-square w-12 h-12 rounded-full text-center cursor-pointer transition-colors flex items-center justify-center ${
+                          tempWorkDays.includes(day) 
+                            ? 'text-white' 
+                            : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                        style={{
+                          backgroundColor: tempWorkDays.includes(day) 
+                            ? 'var(--accent-9)' 
+                            : 'var(--gray-3)'
+                        }}
+                        onClick={() => handleDayToggle(day)}
+                      >
+                        <Text size="3" weight="medium">{day}</Text>
+                      </button>
+                    ))}
+                  </Flex>
+                </Flex>
+
+                <div className="w-full h-px bg-gray-200 mt-4"></div>
+
+                {/* 일괄 선택 섹션 */}
+                <Text size="2" weight="medium" className="mb-2">일괄 선택</Text>
+                
+                <Flex gap="4" justify="center">
+                  <button 
+                    className={`py-3 px-6 rounded-full text-center cursor-pointer transition-colors ${
+                      isAllWeekdaysSelected() 
+                        ? 'text-white' 
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                    style={{
+                      backgroundColor: isAllWeekdaysSelected() 
+                        ? 'var(--accent-9)' 
+                        : 'var(--gray-3)'
+                    }}
+                    onClick={handleWeekdaySelect}
+                  >
+                    <Text size="2" weight="medium">평일 전체</Text>
+                  </button>
+                  <button 
+                    className={`py-3 px-6 rounded-full text-center cursor-pointer transition-colors ${
+                      isAllWeekendsSelected() 
+                        ? 'text-white' 
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                    style={{
+                      backgroundColor: isAllWeekendsSelected() 
+                        ? 'var(--accent-9)' 
+                        : 'var(--gray-3)'
+                    }}
+                    onClick={handleWeekendSelect}
+                  >
+                    <Text size="2" weight="medium">주말 전체</Text>
+                  </button>
                 </Flex>
               </Flex>
               
               <Flex gap="3" className="mt-4">
                 <Button 
-                  onClick={() => {
-                    // TODO: 체크된 요일들을 가져와서 저장
-                    setIsWorkDaysDialogOpen(false);
-                  }}
+                  onClick={handleWorkDaysSave}
                   className="flex-1"
                 >
                   저장
                 </Button>
                 <Button 
                   variant="outline"
-                  onClick={() => setIsWorkDaysDialogOpen(false)}
+                  onClick={handleWorkDaysCancel}
                   className="flex-1"
                 >
                   취소
