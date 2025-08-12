@@ -309,11 +309,15 @@ export default function MatchingPage() {
                   <div>
                     <Flex justify="between" align="center" className="mb-2">
                       <Text size="2" weight="medium">고객명</Text>
-                      <Text size="3" weight="medium">{selectedMatching.clientName}</Text>
+                      <Text size="2" weight="bold">{selectedMatching.clientName}</Text>
                     </Flex>
-                    <Flex justify="between" align="center">
+                    <Flex justify="between" align="center" className="mb-2">
                       <Text size="2" weight="medium">나이/성별</Text>
                       <Text size="2" color="gray">{selectedMatching.clientAge}세, {selectedMatching.clientGender}</Text>
+                    </Flex>
+                    <Flex justify="between" align="center">
+                      <Text size="2" weight="medium">연락처</Text>
+                      <Text size="2" color="gray">{selectedMatching.contactPhone}</Text>
                     </Flex>
                   </div>
 
@@ -343,15 +347,11 @@ export default function MatchingPage() {
 
                   <div className="w-full h-px bg-gray-200"></div>
 
-                  {/* 위치 및 연락처 섹션 */}
+                  {/* 위치 섹션 */}
                   <div>
-                    <Flex justify="between" align="center" className="mb-2">
+                    <Flex justify="between" align="center">
                       <Text size="2" weight="medium">주소</Text>
                       <Text size="2">{selectedMatching.address}</Text>
-                    </Flex>
-                    <Flex justify="between" align="center">
-                      <Text size="2" weight="medium">연락처</Text>
-                      <Text size="2" color="gray">{selectedMatching.contactPhone}</Text>
                     </Flex>
                   </div>
 
