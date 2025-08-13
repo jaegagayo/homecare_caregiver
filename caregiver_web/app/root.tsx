@@ -12,7 +12,6 @@ import { Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
 
 import "./tailwind.css";
-import { startNotificationPolling } from "./components/Admin/NotificationPopover";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -83,17 +82,7 @@ export default function App() {
     }
   }, []);
 
-  // 알림 폴링 시작
-  useEffect(() => {
-    const intervalId = startNotificationPolling();
-    
-    // 컴포넌트 언마운트 시 인터벌 정리
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, []);
+
 
   return (
     <DarkModeContext.Provider value={{ isDarkMode, toggleDarkMode }}>

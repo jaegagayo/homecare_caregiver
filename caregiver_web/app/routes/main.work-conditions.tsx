@@ -179,7 +179,7 @@ export default function WorkConditionsPage() {
               className="w-full"
               size="3"
             >
-              세부 조정으로 이동
+              직접 설정하러 가기
             </Button>
           </Flex>
         )}
