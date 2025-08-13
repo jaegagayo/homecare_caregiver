@@ -84,7 +84,7 @@ export default function ScheduleHeader({ currentWeek, schedules, onNavigateWeek 
         {/* 일정 현황 */}
         <div className="flex-1">
           <Flex align="center" justify="between">
-            <Text size="3" color="gray">일정</Text>
+            <Text size="2" color="gray">일정</Text>
             <Text size="4" weight="bold">
               {currentWeekSchedules.length}건 중 <span style={{ color: 'var(--accent-9)' }}>{completedCount}건</span> 완료
             </Text>
@@ -94,10 +94,10 @@ export default function ScheduleHeader({ currentWeek, schedules, onNavigateWeek 
         {/* 세로 구분선 */}
         <div className="w-px h-6 bg-gray-300 mx-4"></div>
         
-        {/* 이번 주 수익 */}
+        {/* 해당 주 수익 */}
         <div className="flex-1">
           <Flex align="center" justify="between">
-            <Text size="3" color="gray">이번 주 수익</Text>
+            <Text size="2" color="gray">수익</Text>
             <Text size="4" weight="bold">
               ₩{totalEarnings.toLocaleString()}
             </Text>

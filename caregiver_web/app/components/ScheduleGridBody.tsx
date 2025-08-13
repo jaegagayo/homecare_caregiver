@@ -46,6 +46,19 @@ const ScheduleGridBody = forwardRef<HTMLDivElement, ScheduleGridBodyProps>(({ sc
     return () => clearInterval(timer);
   }, []);
 
+  // 현재 시간을 기준으로 스크롤 위치 설정
+  useEffect(() => {
+    if (gridRef.current) {
+      const now = new Date();
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+      const currentMinutes = currentHour * 60 + currentMinute;
+      const scrollTop = (currentMinutes / 60) * HOUR_HEIGHT - 16;
+      
+      gridRef.current.scrollTop = Math.max(0, scrollTop);
+    }
+  }, []);
+
   // 주간 날짜 배열 생성
   const getWeekDates = (startDate: Date) => {
     const dates = [];
@@ -127,13 +140,16 @@ const ScheduleGridBody = forwardRef<HTMLDivElement, ScheduleGridBodyProps>(({ sc
         position: 'sticky',
         top: 0,
         zIndex: 30,
-        background: 'transparent'
+        background: 'white',
+        border: '1px solid var(--gray-6)',
+        borderBottom: '1px solid var(--gray-6)',
+        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
       }}>
-        <div style={{ background: 'var(--gray-2)' }} />
+        <div style={{ background: 'white' }} />
         {weekDates.map((date, idx) => (
           <div key={idx} style={{
-            background: isToday(date) ? 'var(--accent-9)' : 'var(--gray-2)',
-            color: isToday(date) ? 'var(--accent-3)' : undefined,
+            background: isToday(date) ? 'var(--accent-9)' : 'transparent',
+            color: isToday(date) ? 'var(--accent-3)' : 'var(--gray-11)',
             textAlign: 'center',
             fontWeight: 600,
             fontSize: 10,

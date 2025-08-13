@@ -185,7 +185,7 @@ export default function EarningsPage() {
           {/* 이번 달 정산 예정 카드 */}
           <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4 shadow-sm">
             <Flex align="center" justify="between">
-              <Text size="3" color="gray">정산 예정</Text>
+              <Text size="2" color="gray">정산 예정</Text>
                 <Flex align="center" gap="2">
                   <Text size="5" weight="bold" style={{ color: 'var(--accent-9)' }}>
                     ₩{summary.thisMonth.toLocaleString()}
@@ -204,7 +204,7 @@ export default function EarningsPage() {
               {/* 평균 시급 */}
               <div className="flex-1">
                 <Flex align="center" justify="between">
-                  <Text size="3" color="gray">평균 시급</Text>
+                  <Text size="2" color="gray">평균 시급</Text>
                   <Text size="4" weight="bold">
                     ₩{Math.round(summary.thisMonth / summary.totalHours).toLocaleString()}
                   </Text>
@@ -217,7 +217,7 @@ export default function EarningsPage() {
               {/* 총 근무 시간 */}
               <div className="flex-1">
                 <Flex align="center" justify="between">
-                  <Text size="3" color="gray">총 근무 시간</Text>
+                  <Text size="2" color="gray">총 근무 시간</Text>
                   <Text size="4" weight="bold">
                     {summary.totalHours}시간
                   </Text>
