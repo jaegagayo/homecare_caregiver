@@ -4,7 +4,10 @@ import {
   Flex, 
   Text
 } from "@radix-ui/themes";
-import ScheduleGrid from "../components/ScheduleGrid";
+import ViewToggle from "../components/Schedule/ViewToggle";
+import ScheduleListView from "../components/Schedule/ListView/ScheduleListView";
+import ScheduleHeader from "../components/Schedule/CalendarView/ScheduleHeader";
+import ScheduleGridBody from "../components/Schedule/CalendarView/ScheduleGridBody";
 
 interface Schedule {
   id: string;
@@ -16,12 +19,39 @@ interface Schedule {
   status: 'upcoming' | 'completed' | 'cancelled';
   duration: number; // 시간 단위
   hourlyRate: number;
+  isRegular?: boolean;
+  regularSequence?: { current: number; total: number };
 }
 
 export default function SchedulePage() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
-
   const [isLoading, setIsLoading] = useState(true);
+  const [currentWeek, setCurrentWeek] = useState(new Date());
+  const [currentView, setCurrentView] = useState<'calendar' | 'list'>('calendar');
+  const [currentDayIndex, setCurrentDayIndex] = useState(0); // 현재 표시할 3일의 시작 인덱스
+
+  // 주간 네비게이션 함수
+  const navigateWeek = (direction: 'prev' | 'next' | 'today') => {
+    if (direction === 'today') {
+      setCurrentWeek(new Date());
+    } else {
+      const newWeek = new Date(currentWeek);
+      newWeek.setDate(currentWeek.getDate() + (direction === 'next' ? 7 : -7));
+      setCurrentWeek(newWeek);
+    }
+  };
+
+  // 3일 단위 네비게이션 함수
+  const navigateDays = (direction: 'prev' | 'next' | number) => {
+    if (typeof direction === 'number') {
+      setCurrentDayIndex(direction);
+    } else {
+      const newIndex = direction === 'next' 
+        ? Math.min(4, currentDayIndex + 1)
+        : Math.max(0, currentDayIndex - 1);
+      setCurrentDayIndex(newIndex);
+    }
+  };
 
   useEffect(() => {
     // 더미 데이터 로드
@@ -29,58 +59,10 @@ export default function SchedulePage() {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       setSchedules([
-        // 8월 11일 (일요일)
+        // 8월 20일 (화요일) - 오늘
         {
           id: "1",
-          date: "2025-08-11",
-          time: "09:00 - 11:00",
-          clientName: "김영희",
-          address: "서울시 강남구 역삼동",
-          serviceType: "방문요양",
-          status: "completed",
-          duration: 2,
-          hourlyRate: 15000
-        },
-        {
-          id: "2",
-          date: "2025-08-11",
-          time: "14:00 - 16:00",
-          clientName: "박철수",
-          address: "서울시 서초구 서초동",
-          serviceType: "방문요양",
-          status: "completed",
-          duration: 2,
-          hourlyRate: 16000
-        },
-        
-        // 8월 12일 (월요일)
-        {
-          id: "3",
-          date: "2025-08-12",
-          time: "08:00 - 10:00",
-          clientName: "이순자",
-          address: "서울시 마포구 합정동",
-          serviceType: "방문요양",
-          status: "completed",
-          duration: 2,
-          hourlyRate: 15000
-        },
-        {
-          id: "4",
-          date: "2025-08-12",
-          time: "13:00 - 15:00",
-          clientName: "최민수",
-          address: "서울시 송파구 문정동",
-          serviceType: "방문요양",
-          status: "completed",
-          duration: 2,
-          hourlyRate: 17000
-        },
-        
-        // 8월 13일 (화요일) - 오늘
-        {
-          id: "5",
-          date: "2025-08-13",
+          date: "2025-08-20",
           time: "09:00 - 11:00",
           clientName: "정미영",
           address: "서울시 강서구 화곡동",
@@ -90,32 +72,36 @@ export default function SchedulePage() {
           hourlyRate: 15000
         },
         {
-          id: "6",
-          date: "2025-08-13",
+          id: "2",
+          date: "2025-08-20",
           time: "14:00 - 16:00",
           clientName: "김철수",
           address: "서울시 영등포구 여의도동",
           serviceType: "방문요양",
           status: "upcoming",
           duration: 2,
-          hourlyRate: 18000
+          hourlyRate: 18000,
+          isRegular: true,
+          regularSequence: { current: 3, total: 5 }
         },
         {
-          id: "7",
-          date: "2025-08-13",
+          id: "3",
+          date: "2025-08-20",
           time: "18:00 - 20:00",
           clientName: "박영희",
           address: "서울시 성동구 성수동",
           serviceType: "방문요양",
           status: "upcoming",
           duration: 2,
-          hourlyRate: 16000
+          hourlyRate: 16000,
+          isRegular: true,
+          regularSequence: { current: 1, total: 3 }
         },
         
-        // 8월 14일 (수요일)
+        // 8월 21일 (수요일)
         {
-          id: "8",
-          date: "2025-08-14",
+          id: "4",
+          date: "2025-08-21",
           time: "10:00 - 12:00",
           clientName: "이미라",
           address: "서울시 광진구 구의동",
@@ -125,8 +111,8 @@ export default function SchedulePage() {
           hourlyRate: 15000
         },
         {
-          id: "9",
-          date: "2025-08-14",
+          id: "5",
+          date: "2025-08-21",
           time: "15:00 - 17:00",
           clientName: "최동욱",
           address: "서울시 동대문구 신설동",
@@ -136,10 +122,10 @@ export default function SchedulePage() {
           hourlyRate: 17000
         },
         
-        // 8월 15일 (목요일)
+        // 8월 22일 (목요일)
         {
-          id: "10",
-          date: "2025-08-15",
+          id: "6",
+          date: "2025-08-22",
           time: "08:00 - 10:00",
           clientName: "한지영",
           address: "서울시 중구 명동",
@@ -149,8 +135,8 @@ export default function SchedulePage() {
           hourlyRate: 16000
         },
         {
-          id: "11",
-          date: "2025-08-15",
+          id: "7",
+          date: "2025-08-22",
           time: "13:00 - 15:00",
           clientName: "송민호",
           address: "서울시 용산구 이태원동",
@@ -160,10 +146,10 @@ export default function SchedulePage() {
           hourlyRate: 15000
         },
         
-        // 8월 16일 (금요일)
+        // 8월 23일 (금요일)
         {
-          id: "12",
-          date: "2025-08-16",
+          id: "8",
+          date: "2025-08-23",
           time: "11:00 - 13:00",
           clientName: "윤서연",
           address: "서울시 서대문구 신촌동",
@@ -173,8 +159,8 @@ export default function SchedulePage() {
           hourlyRate: 15000
         },
         {
-          id: "13",
-          date: "2025-08-16",
+          id: "9",
+          date: "2025-08-23",
           time: "16:00 - 18:00",
           clientName: "임태현",
           address: "서울시 종로구 종로",
@@ -184,10 +170,10 @@ export default function SchedulePage() {
           hourlyRate: 17000
         },
         
-        // 8월 17일 (토요일)
+        // 8월 24일 (토요일)
         {
-          id: "14",
-          date: "2025-08-17",
+          id: "10",
+          date: "2025-08-24",
           time: "09:00 - 11:00",
           clientName: "강미영",
           address: "서울시 노원구 공릉동",
@@ -195,6 +181,54 @@ export default function SchedulePage() {
           status: "upcoming",
           duration: 2,
           hourlyRate: 15000
+        },
+        
+        // 8월 25일 (일요일)
+        {
+          id: "11",
+          date: "2025-08-25",
+          time: "09:00 - 11:00",
+          clientName: "김영희",
+          address: "서울시 강남구 역삼동",
+          serviceType: "방문요양",
+          status: "upcoming",
+          duration: 2,
+          hourlyRate: 15000
+        },
+        {
+          id: "12",
+          date: "2025-08-25",
+          time: "14:00 - 16:00",
+          clientName: "박철수",
+          address: "서울시 서초구 서초동",
+          serviceType: "방문요양",
+          status: "upcoming",
+          duration: 2,
+          hourlyRate: 16000
+        },
+        
+        // 8월 26일 (월요일)
+        {
+          id: "13",
+          date: "2025-08-26",
+          time: "08:00 - 10:00",
+          clientName: "이순자",
+          address: "서울시 마포구 합정동",
+          serviceType: "방문요양",
+          status: "upcoming",
+          duration: 2,
+          hourlyRate: 15000
+        },
+        {
+          id: "14",
+          date: "2025-08-26",
+          time: "13:00 - 15:00",
+          clientName: "최민수",
+          address: "서울시 송파구 문정동",
+          serviceType: "방문요양",
+          status: "upcoming",
+          duration: 2,
+          hourlyRate: 17000
         }
       ]);
 
@@ -217,13 +251,41 @@ export default function SchedulePage() {
   }
 
   return (
-    <Container size="2" className="p-4" style={{ height: '80vh', overflow: 'hidden' }}>
+    <Container size="2" style={{ 
+      height: '80vh', 
+      overflow: 'hidden',
+      paddingLeft: '16px',
+      paddingRight: '16px',
+      paddingBottom: '16px'
+    }}>
       <Flex direction="column" style={{ height: '100%' }}>
+        {/* 뷰 전환 토글 */}
+        <ViewToggle 
+          currentView={currentView}
+          onViewChange={setCurrentView}
+        />
 
-        {/* 캘린더 뷰 */}
-        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden', maxHeight: '80vh' }}>
-          <ScheduleGrid schedules={schedules} />
-        </div>
+        {/* 뷰에 따른 스케줄 표시 */}
+        {currentView === 'calendar' ? (
+          <>
+            {/* 캘린더 뷰 헤더 */}
+            <ScheduleHeader 
+              currentWeek={currentWeek} 
+              currentDayIndex={currentDayIndex}
+              schedules={schedules}
+              onNavigateWeek={navigateWeek}
+              onNavigateDays={navigateDays}
+            />
+            <ScheduleGridBody 
+              schedules={schedules} 
+              currentWeek={currentWeek} 
+              currentDayIndex={currentDayIndex}
+              onDayIndexChange={setCurrentDayIndex}
+            />
+          </>
+        ) : (
+          <ScheduleListView schedules={schedules} />
+        )}
       </Flex>
     </Container>
   );

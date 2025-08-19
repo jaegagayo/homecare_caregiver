@@ -1,18 +1,16 @@
 import { useState, useEffect } from "react";
-import { Link } from "@remix-run/react";
 import { 
   Container, 
   Flex, 
   Heading, 
-  Text, 
-  Button,
-  Badge
+  Text
 } from "@radix-ui/themes";
 import { 
-  Clock, 
-  MapPin, 
-  User
-} from "lucide-react";
+  TodayScheduleList, 
+  TomorrowPreview, 
+  RegularProposalNotification, 
+  RecentAssignmentNotification 
+} from "../components/Home";
 
 interface Schedule {
   id: string;
@@ -21,6 +19,8 @@ interface Schedule {
   address: string;
   serviceType: string;
   status: 'upcoming' | 'completed' | 'cancelled';
+  isRegular?: boolean;
+  regularSequence?: { current: number; total: number };
 }
 
 
@@ -47,7 +47,9 @@ export default function HomePage() {
           clientName: "김영희",
           address: "서울시 강남구 역삼동",
           serviceType: "방문요양",
-          status: "upcoming"
+          status: "upcoming",
+          isRegular: true,
+          regularSequence: { current: 3, total: 5 }
         },
         {
           id: "2",
@@ -63,7 +65,29 @@ export default function HomePage() {
           clientName: "이순자",
           address: "서울시 마포구 합정동",
           serviceType: "방문요양",
-          status: "completed"
+          status: "completed",
+          isRegular: true,
+          regularSequence: { current: 1, total: 3 }
+        },
+        {
+          id: "4",
+          time: "10:00 - 12:00",
+          clientName: "최민수",
+          address: "서울시 송파구 문정동",
+          serviceType: "방문요양",
+          status: "upcoming",
+          isRegular: true,
+          regularSequence: { current: 2, total: 4 }
+        },
+        {
+          id: "5",
+          time: "15:00 - 17:00",
+          clientName: "정수진",
+          address: "서울시 강동구 천호동",
+          serviceType: "방문요양",
+          status: "upcoming",
+          isRegular: true,
+          regularSequence: { current: 1, total: 6 }
         }
       ]);
 
@@ -141,89 +165,18 @@ export default function HomePage() {
           </Text>
         </div>
 
-        {/* 곧 수행할 일정 */}
-        {schedules.filter(s => s.status === 'upcoming').length > 0 ? (
-          <div className="bg-white rounded-lg p-6 border border-gray-200">
-            {schedules.filter(s => s.status === 'upcoming').slice(0, 1).map((schedule) => (
-              <div key={schedule.id} className="space-y-3">
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-0">
-                      <div>
-                        <Text size="5" weight="bold">{schedule.clientName}님</Text>
-                      </div>
-                      <div>
-                        <Text size="3" color="gray">{schedule.address}</Text>
-                      </div>
-                    </div>
-                    <Text size="2" color="gray" className="bg-gray-100 px-2 py-1 rounded">
-                      {schedule.serviceType}
-                    </Text>
-                  </div>
-                  <div className="w-full aspect-[4/3] bg-gray-200 rounded-lg flex items-center justify-center">
-                    <Text size="2" color="gray">지도 영역</Text>
-                  </div>
-                  <div>
-                    <Text size="3" color="gray">
-                      시작까지 {calculateTimeRemaining(schedule.time)} 전 ({schedule.time})
-                    </Text>
-                  </div>
-                  <div className="border-t border-gray-200 pt-3">
-                    <Text size="2" color="gray">
-                      고객님께서 계단이 있는 3층에 거주하고 계십니다. 엘리베이터는 1층에만 있어서 2-3층은 계단을 이용해야 합니다. 고객님은 보행기 사용이 필요하시며, 화장실은 복도 끝에 위치해 있습니다. 방문 시에는 반드시 신발을 벗고 들어가시기 바랍니다.
-                    </Text>
-                  </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="bg-white rounded-lg p-6 border border-gray-200 text-center">
-            <Text size="3" color="gray">오늘 예정된 일정이 없습니다.</Text>
-          </div>
-        )}
+
 
         {/* 오늘의 일정 */}
-        <div>
-          <Flex justify="between" align="center" className="mb-4">
-            <Heading size="4">오늘의 일정</Heading>
-            <Link to="/main/schedule">
-              <Button variant="ghost" size="2">전체보기</Button>
-            </Link>
-          </Flex>
-          
-          {schedules.length > 0 ? (
-            <Flex direction="column" gap="3">
-              {schedules.map((schedule) => (
-                <div key={schedule.id} className="bg-white border border-gray-200 rounded-lg p-3">
-                  <Flex justify="between" align="start" gap="3">
-                    <Flex direction="column" gap="2" className="flex-1">
-                      <Flex align="center" gap="2">
-                        <Clock size={16} className="text-gray-500" />
-                        <Text size="2" weight="medium">{schedule.time}</Text>
-                        <Badge color={getStatusColor(schedule.status) as "blue" | "green" | "red" | "gray"}>
-                          {getStatusText(schedule.status)}
-                        </Badge>
-                      </Flex>
-                      <Flex align="center" gap="2">
-                        <User size={16} className="text-gray-500" />
-                        <Text size="2">{schedule.clientName}</Text>
-                      </Flex>
-                      <Flex align="center" gap="2">
-                        <MapPin size={16} className="text-gray-500" />
-                        <Text size="2" color="gray">{schedule.address}</Text>
-                      </Flex>
-                      <Text size="1" color="gray">{schedule.serviceType}</Text>
-                    </Flex>
-                  </Flex>
-                </div>
-              ))}
-            </Flex>
-          ) : (
-            <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
-              <Text color="gray">오늘 예정된 일정이 없습니다.</Text>
-            </div>
-          )}
-        </div>
+        <TodayScheduleList 
+          schedules={schedules}
+          getStatusColor={getStatusColor}
+          getStatusText={getStatusText}
+          calculateTimeRemaining={calculateTimeRemaining}
+        />
 
+        {/* 내일 미리보기 */}
+        <TomorrowPreview schedules={schedules} />
 
       </Flex>
     </Container>

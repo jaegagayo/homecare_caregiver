@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@remix-run/react";
-import { Button, Card, Container, Flex, Heading, Text } from "@radix-ui/themes";
-
+import { Button, Container, Flex, Heading, Text } from "@radix-ui/themes";
 
 export default function Index() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -38,12 +37,12 @@ export default function Index() {
   }
 
   return (
-    <Container size="2" className="min-h-screen flex items-center justify-center">
-      <Card className="w-full max-w-md p-8">
+    <Container size="2" className="min-h-screen flex items-center justify-center bg-gradient-to-br from-accent-1 to-accent-2">
+      <div className="w-full max-w-md p-8">
         <Flex direction="column" align="center" gap="6">
           <Flex direction="column" align="center" gap="4">
-            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
-              <div className="w-10 h-10 text-blue-600">🏥</div>
+            <div className="w-20 h-20 bg-accent-3 rounded-full flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 text-accent-11">🏥</div>
             </div>
             <Heading size="6" className="text-center">
               케어기버
@@ -53,10 +52,17 @@ export default function Index() {
             </Text>
           </Flex>
 
-          <Flex direction="column" gap="3" className="w-full">
+          <Flex direction="column" gap="4" className="w-full">
             <Button size="3" onClick={handleLogin} className="w-full">
               로그인
             </Button>
+            
+            <Flex align="center" gap="3">
+              <div className="flex-1 h-px bg-gray-200"></div>
+              <Text size="2" color="gray">또는</Text>
+              <div className="flex-1 h-px bg-gray-200"></div>
+            </Flex>
+            
             <Button 
               size="3" 
               variant="outline" 
@@ -66,8 +72,14 @@ export default function Index() {
               회원가입
             </Button>
           </Flex>
+
+          <Flex direction="column" align="center" gap="3" className="pt-4 border-t border-gray-100">
+            <Text size="2" color="gray" className="text-center">
+              안전한 서비스 • 24시간 지원
+            </Text>
+          </Flex>
         </Flex>
-      </Card>
+      </div>
     </Container>
   );
 }

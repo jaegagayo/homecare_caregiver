@@ -7,15 +7,12 @@ import {
   TextArea,
   Heading,
   Card,
-  Select,
-  Checkbox,
   Dialog
 } from "@radix-ui/themes";
 import { 
-  ArrowLeft,
   X
 } from "lucide-react";
-import { useNavigate } from "@remix-run/react";
+import { useNavigate, useSearchParams } from "@remix-run/react";
 
 interface WorkConditions {
   hourlyRate: {
@@ -30,23 +27,56 @@ interface WorkConditions {
   workAreas: string[];
   serviceTypes: string[];
   specialNotes: string[];
+  // 추가된 항목들
+  workDuration: {
+    min: number;
+    max: number;
+  };
+  travelTime: number;
+  transportation: string;
+  lunchTime: {
+    included: boolean;
+    duration: number;
+  };
+  bufferTime: number;
+  dementiaCare: boolean;
+  bedriddenCare: boolean;
+  preferredAge: {
+    min: number;
+    max: number;
+  };
+  preferredGender: string;
 }
 
 export default function WorkConditionsPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<string>('natural');
   const [naturalInput, setNaturalInput] = useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [isFromAnalysis, setIsFromAnalysis] = useState<boolean>(false);
   const [isWorkDaysDialogOpen, setIsWorkDaysDialogOpen] = useState<boolean>(false);
   const [tempWorkDays, setTempWorkDays] = useState<string[]>([]);
+  
+  // 최초 생성인지 변경인지 확인
+  const isInitialSetup = searchParams.get('mode') === 'initial' || !localStorage.getItem('work_conditions_saved');
   const [workConditions, setWorkConditions] = useState<WorkConditions>({
     hourlyRate: { min: 0, max: 50000 },
     workDays: ['월', '화', '수', '목', '금', '토', '일'],
     workHours: { start: '00:00', end: '23:59' },
     workAreas: ['전체'],
     serviceTypes: ['전체'],
-    specialNotes: ['없음']
+    specialNotes: ['없음'],
+    // 추가된 항목들 초기값
+    workDuration: { min: 2, max: 8 },
+    travelTime: 30,
+    transportation: '대중교통',
+    lunchTime: { included: true, duration: 60 },
+    bufferTime: 30,
+    dementiaCare: false,
+    bedriddenCare: false,
+    preferredAge: { min: 60, max: 90 },
+    preferredGender: '상관없음'
   });
 
   const handleAnalyze = async () => {
@@ -123,7 +153,15 @@ export default function WorkConditionsPage() {
 
   const handleSave = () => {
     // TODO: 설정 저장 로직
-    navigate(-1);
+    localStorage.setItem('work_conditions_saved', 'true');
+    
+    if (isInitialSetup) {
+      // 최초 생성인 경우: 승인 대기 페이지로 이동
+      navigate("/main/approval-waiting");
+    } else {
+      // 변경인 경우: 메인 페이지로 돌아가기
+      navigate("/main/home");
+    }
   };
 
   return (
@@ -223,11 +261,103 @@ export default function WorkConditionsPage() {
 
               <div className="w-full h-px bg-gray-200"></div>
 
+              {/* 1회 최소·최대 근무시간 섹션 */}
+              <div className="py-1 px-2 cursor-pointer hover:bg-gray-50">
+                <Flex justify="between" align="center">
+                  <Text size="3" weight="medium">1회 최소·최대 근무시간</Text>
+                  <Text size="3" weight="medium">{workConditions.workDuration.min}시간 ~ {workConditions.workDuration.max}시간</Text>
+                </Flex>
+              </div>
+
+              <div className="w-full h-px bg-gray-200"></div>
+
+              {/* 이동 가능 시간 섹션 */}
+              <div className="py-1 px-2 cursor-pointer hover:bg-gray-50">
+                <Flex justify="between" align="center">
+                  <Text size="3" weight="medium">이동 가능 시간</Text>
+                  <Text size="3" weight="medium">{workConditions.travelTime}분</Text>
+                </Flex>
+              </div>
+
+              <div className="w-full h-px bg-gray-200"></div>
+
               {/* 근무 지역 섹션 */}
               <div className="py-1 px-2 cursor-pointer hover:bg-gray-50">
                 <Flex justify="between" align="center">
                   <Text size="3" weight="medium">근무 지역</Text>
                   <Text size="3" weight="medium">{workConditions.workAreas.join(', ')}</Text>
+                </Flex>
+              </div>
+
+              <div className="w-full h-px bg-gray-200"></div>
+
+              {/* 이동수단 섹션 */}
+              <div className="py-1 px-2 cursor-pointer hover:bg-gray-50">
+                <Flex justify="between" align="center">
+                  <Text size="3" weight="medium">이동수단</Text>
+                  <Text size="3" weight="medium">{workConditions.transportation}</Text>
+                </Flex>
+              </div>
+
+              <div className="w-full h-px bg-gray-200"></div>
+
+              {/* 점심시간 섹션 */}
+              <div className="py-1 px-2 cursor-pointer hover:bg-gray-50">
+                <Flex justify="between" align="center">
+                  <Text size="3" weight="medium">점심시간</Text>
+                  <Text size="3" weight="medium">
+                    {workConditions.lunchTime.included ? `포함 (${workConditions.lunchTime.duration}분)` : '불포함'}
+                  </Text>
+                </Flex>
+              </div>
+
+              <div className="w-full h-px bg-gray-200"></div>
+
+              {/* 이동 시간 제외 사이 버퍼 간격 섹션 */}
+              <div className="py-1 px-2 cursor-pointer hover:bg-gray-50">
+                <Flex justify="between" align="center">
+                  <Text size="3" weight="medium">쉬는 시간 (버퍼 간격)</Text>
+                  <Text size="3" weight="medium">{workConditions.bufferTime}분</Text>
+                </Flex>
+              </div>
+
+              <div className="w-full h-px bg-gray-200"></div>
+
+              {/* 치매 환자 가능여부 섹션 */}
+              <div className="py-1 px-2 cursor-pointer hover:bg-gray-50">
+                <Flex justify="between" align="center">
+                  <Text size="3" weight="medium">치매 환자 가능여부</Text>
+                  <Text size="3" weight="medium">{workConditions.dementiaCare ? '가능' : '불가능'}</Text>
+                </Flex>
+              </div>
+
+              <div className="w-full h-px bg-gray-200"></div>
+
+              {/* 와상 환자 가능여부 섹션 */}
+              <div className="py-1 px-2 cursor-pointer hover:bg-gray-50">
+                <Flex justify="between" align="center">
+                  <Text size="3" weight="medium">와상 환자 가능여부</Text>
+                  <Text size="3" weight="medium">{workConditions.bedriddenCare ? '가능' : '불가능'}</Text>
+                </Flex>
+              </div>
+
+              <div className="w-full h-px bg-gray-200"></div>
+
+              {/* 돌봄 선호 연령 섹션 */}
+              <div className="py-1 px-2 cursor-pointer hover:bg-gray-50">
+                <Flex justify="between" align="center">
+                  <Text size="3" weight="medium">돌봄 선호 연령</Text>
+                  <Text size="3" weight="medium">{workConditions.preferredAge.min}세 ~ {workConditions.preferredAge.max}세</Text>
+                </Flex>
+              </div>
+
+              <div className="w-full h-px bg-gray-200"></div>
+
+              {/* 돌봄 선호 성별 섹션 */}
+              <div className="py-1 px-2 cursor-pointer hover:bg-gray-50">
+                <Flex justify="between" align="center">
+                  <Text size="3" weight="medium">돌봄 선호 성별</Text>
+                  <Text size="3" weight="medium">{workConditions.preferredGender}</Text>
                 </Flex>
               </div>
 
@@ -279,7 +409,7 @@ export default function WorkConditionsPage() {
 
             <Flex gap="3" className="mt-4">
               <Button onClick={handleSave} className="flex-1">
-                저장
+                조건 저장
               </Button>
               <Button 
                 variant="outline"

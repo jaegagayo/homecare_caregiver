@@ -10,15 +10,19 @@ interface Schedule {
   status: 'upcoming' | 'completed' | 'cancelled';
   duration: number;
   hourlyRate: number;
+  isRegular?: boolean;
+  regularSequence?: { current: number; total: number };
 }
 
 interface ScheduleHeaderProps {
   currentWeek: Date;
+  currentDayIndex: number;
   schedules: Schedule[];
   onNavigateWeek: (direction: 'prev' | 'next' | 'today') => void;
+  onNavigateDays: (direction: 'prev' | 'next' | number) => void;
 }
 
-export default function ScheduleHeader({ currentWeek, schedules, onNavigateWeek }: ScheduleHeaderProps) {
+export default function ScheduleHeader({ currentWeek, currentDayIndex, schedules, onNavigateWeek, onNavigateDays }: ScheduleHeaderProps) {
   // 주간 날짜 배열 생성
   const getWeekDates = (startDate: Date) => {
     const dates = [];
@@ -77,6 +81,64 @@ export default function ScheduleHeader({ currentWeek, schedules, onNavigateWeek 
           <Button onClick={() => onNavigateWeek('today')} variant="soft" size="2">오늘</Button>
           <Button onClick={() => onNavigateWeek('next')} variant="ghost" size="2">{'>'}</Button>
         </Flex>
+      </Flex>
+
+      {/* 3일 인디케이터 */}
+      <Flex justify="center" align="center" gap="2">
+        <Button 
+          onClick={() => onNavigateDays('prev')} 
+          variant="ghost" 
+          size="2"
+          disabled={currentDayIndex === 0}
+        >
+          ◀
+        </Button>
+        <div className="grid grid-cols-7 gap-2">
+          {weekDates.map((date, idx) => (
+            <button
+              key={idx}
+              className={`py-2 px-3 rounded-full text-center cursor-pointer transition-colors ${
+                idx >= currentDayIndex && idx < currentDayIndex + 3
+                  ? 'text-white'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+              style={{
+                backgroundColor: idx >= currentDayIndex && idx < currentDayIndex + 3
+                  ? 'var(--accent-9)'
+                  : 'var(--gray-3)'
+              }}
+              onClick={() => {
+                // 해당 요일이 3일 중 가운데로 오도록 이동
+                let targetIndex;
+                if (idx <= 1) {
+                  // 일(0), 월(1)은 0-2일 (0,1,2)
+                  targetIndex = 0;
+                } else if (idx >= 5) {
+                  // 금(5), 토(6)는 4-6일 (4,5,6)
+                  targetIndex = 4;
+                } else {
+                  // 화(2), 수(3), 목(4)은 각각 가운데
+                  // 화(2) → 1-3일 (targetIndex = 1)
+                  // 수(3) → 2-4일 (targetIndex = 2)  
+                  // 목(4) → 3-5일 (targetIndex = 3)
+                  targetIndex = idx - 1;
+                }
+
+                onNavigateDays(targetIndex);
+              }}
+            >
+              <Text size="2" weight="medium">{['일', '월', '화', '수', '목', '금', '토'][date.getDay()]}</Text>
+            </button>
+          ))}
+        </div>
+        <Button 
+          onClick={() => onNavigateDays('next')} 
+          variant="ghost" 
+          size="2"
+          disabled={currentDayIndex === 4}
+        >
+          ▶
+        </Button>
       </Flex>
 
       {/* 통계 정보 */}

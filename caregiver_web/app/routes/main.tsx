@@ -46,6 +46,10 @@ export default function MainLayout() {
       setCurrentPageTitle("매칭");
     } else if (path.includes("/main/work-conditions")) {
       setCurrentPageTitle("근무 조건 설정");
+    } else if (path.includes("/main/approval-waiting")) {
+      setCurrentPageTitle("승인 대기");
+    } else if (path.includes("/main/institution-registration")) {
+      setCurrentPageTitle("기관 소속 등록");
     } else if (path.includes("/main/profile")) {
       setCurrentPageTitle("프로필");
     }
@@ -97,32 +101,34 @@ export default function MainLayout() {
         <Outlet />
       </div>
 
-      {/* 하단 네비게이션 */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
-        <Flex justify="between" className="px-8 py-3">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = currentTab === tab.id;
-            
-            return (
-              <Button
-                key={tab.id}
-                variant="ghost"
-                size="2"
-                className={`flex flex-col items-center gap-1 px-8 py-2 ${
-                  isActive ? "text-accent" : "text-gray-500"
-                }`}
-                onClick={() => handleTabChange(tab.id)}
-              >
-                <Icon size={20} />
-                <Text size="1" className={isActive ? "text-accent" : "text-gray-500"}>
-                  {tab.label}
-                </Text>
-              </Button>
-            );
-          })}
-        </Flex>
-      </div>
+      {/* 하단 네비게이션 - 근무조건/승인대기/기관소속등록 페이지에서는 숨김 */}
+      {!location.pathname.includes("/main/work-conditions") && !location.pathname.includes("/main/approval-waiting") && !location.pathname.includes("/main/institution-registration") && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
+          <Flex justify="between" className="px-8 py-3">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = currentTab === tab.id;
+              
+              return (
+                <Button
+                  key={tab.id}
+                  variant="ghost"
+                  size="2"
+                  className={`flex flex-col items-center gap-1 px-8 py-2 ${
+                    isActive ? "text-accent" : "text-gray-500"
+                  }`}
+                  onClick={() => handleTabChange(tab.id)}
+                >
+                  <Icon size={20} />
+                  <Text size="1" className={isActive ? "text-accent" : "text-gray-500"}>
+                    {tab.label}
+                  </Text>
+                </Button>
+              );
+            })}
+          </Flex>
+        </div>
+      )}
     </div>
   );
 }
