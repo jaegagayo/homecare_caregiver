@@ -49,6 +49,28 @@ const ScheduleGridBody = forwardRef<HTMLDivElement, ScheduleGridBodyProps>(({ sc
     }
   }, [ref]);
 
+  // 컴포넌트 마운트 시 초기 스크롤 설정
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      const now = new Date();
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+      const currentMinutes = currentHour * 60 + currentMinute;
+      const targetScrollTop = (currentMinutes / 60) * HOUR_HEIGHT - 16;
+      
+      // 가로 스크롤이 완료된 후 세로 스크롤 적용
+      setTimeout(() => {
+        if (scrollContainerRef.current && !isProgrammaticScroll.current) {
+          scrollContainerRef.current.scrollTop = Math.max(0, targetScrollTop);
+          console.log('Initial scroll applied on mount:', {
+            targetScrollTop,
+            actualScrollTop: scrollContainerRef.current.scrollTop
+          });
+        }
+      }, 300); // 가로 스크롤 완료를 기다리기 위해 300ms로 증가
+    }
+  }, []); // 빈 의존성 배열로 마운트 시에만 실행
+
   // 현재 시간 업데이트
   useEffect(() => {
     const timer = setInterval(() => {
@@ -57,18 +79,115 @@ const ScheduleGridBody = forwardRef<HTMLDivElement, ScheduleGridBodyProps>(({ sc
     return () => clearInterval(timer);
   }, []);
 
-    // 현재 시간을 기준으로 스크롤 위치 설정
+    // 오늘의 예정된 일정 중 현재 시간에 가장 가까운 일정으로 스크롤 위치 설정
   useEffect(() => {
-    if (gridRef.current) {
-      const now = new Date();
-      const currentHour = now.getHours();
-      const currentMinute = now.getMinutes();
-      const currentMinutes = currentHour * 60 + currentMinute;
-      const scrollTop = (currentMinutes / 60) * HOUR_HEIGHT - 16;
-      
-      gridRef.current.scrollTop = Math.max(0, scrollTop);
+    // 스크롤 컨테이너가 준비되었는지 확인
+    if (!scrollContainerRef.current) {
+      return;
     }
-  }, []);
+
+    // 프로그래밍 스크롤 중에는 세로 스크롤 실행하지 않음
+    if (isProgrammaticScroll.current) {
+      return;
+    }
+
+    // 스크롤 위치 계산 함수
+    const calculateAndApplyScroll = () => {
+      const now = new Date();
+      const today = now.toISOString().split('T')[0]; // YYYY-MM-DD 형식
+      
+      let targetScrollTop = 0;
+      
+      if (schedules.length > 0) {
+        // 오늘의 예정된 일정들 필터링
+        const todaySchedules = schedules.filter(schedule => {
+          const scheduleDate = schedule.date;
+          const scheduleTime = schedule.time.split(' - ')[0]; // 시작 시간만 추출
+          const scheduleDateTime = new Date(`${scheduleDate}T${scheduleTime}`);
+          
+          return scheduleDate === today && 
+                 scheduleDateTime > now && 
+                 schedule.status === 'upcoming';
+        });
+        
+        if (todaySchedules.length > 0) {
+          // 현재 시간에 가장 가까운 일정 찾기
+          const closestSchedule = todaySchedules.reduce((closest, current) => {
+            const currentTime = new Date(`${current.date}T${current.time.split(' - ')[0]}`);
+            const closestTime = new Date(`${closest.date}T${closest.time.split(' - ')[0]}`);
+            
+            const currentDiff = Math.abs(currentTime.getTime() - now.getTime());
+            const closestDiff = Math.abs(closestTime.getTime() - now.getTime());
+            
+            return currentDiff < closestDiff ? current : closest;
+          });
+          
+          // 가장 가까운 일정의 시간으로 스크롤 위치 계산
+          const scheduleTime = closestSchedule.time.split(' - ')[0];
+          const [scheduleHour, scheduleMinute] = scheduleTime.split(':').map(Number);
+          const scheduleMinutes = scheduleHour * 60 + scheduleMinute;
+          targetScrollTop = (scheduleMinutes / 60) * HOUR_HEIGHT - 16;
+          
+          console.log('Scrolling to closest schedule:', {
+            schedule: closestSchedule,
+            time: scheduleTime,
+            targetScrollTop
+          });
+        } else {
+          // 오늘 예정된 일정이 없으면 현재 시간으로 스크롤
+          const currentHour = now.getHours();
+          const currentMinute = now.getMinutes();
+          const currentMinutes = currentHour * 60 + currentMinute;
+          targetScrollTop = (currentMinutes / 60) * HOUR_HEIGHT - 16;
+          
+          console.log('No upcoming schedules today, scrolling to current time:', {
+            currentTime: `${currentHour}:${currentMinute}`,
+            targetScrollTop
+          });
+        }
+      } else {
+        // 스케줄 데이터가 없어도 현재 시간으로 스크롤
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+        const currentMinutes = currentHour * 60 + currentMinute;
+        targetScrollTop = (currentMinutes / 60) * HOUR_HEIGHT - 16;
+        
+        console.log('No schedules data, scrolling to current time:', {
+          currentTime: `${currentHour}:${currentMinute}`,
+          targetScrollTop
+        });
+      }
+      
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTop = Math.max(0, targetScrollTop);
+        console.log('Scroll applied:', {
+          scrollTop: scrollContainerRef.current.scrollTop,
+          targetScrollTop,
+          containerHeight: scrollContainerRef.current.clientHeight,
+          scrollHeight: scrollContainerRef.current.scrollHeight
+        });
+        
+        // 스크롤이 실제로 적용되었는지 확인
+        setTimeout(() => {
+          if (scrollContainerRef.current) {
+            console.log('Scroll verification:', {
+              actualScrollTop: scrollContainerRef.current.scrollTop,
+              expectedScrollTop: targetScrollTop,
+              isCorrect: Math.abs(scrollContainerRef.current.scrollTop - targetScrollTop) < 5
+            });
+          }
+        }, 100);
+      }
+    };
+
+    // 즉시 실행
+    calculateAndApplyScroll();
+    
+    // 추가로 약간의 지연 후 다시 실행 (DOM이 완전히 렌더링된 후)
+    const timeoutId = setTimeout(calculateAndApplyScroll, 100);
+    
+    return () => clearTimeout(timeoutId);
+  }, [schedules]);
 
 
 
@@ -81,7 +200,7 @@ const ScheduleGridBody = forwardRef<HTMLDivElement, ScheduleGridBodyProps>(({ sc
 
     const scrollLeft = e.currentTarget.scrollLeft;
     const newDayIndex = Math.round(scrollLeft / dayColumnWidthRef.current);
-    
+
     // 유효한 범위 내에서만 업데이트
     if (newDayIndex >= 0 && newDayIndex <= 4 && newDayIndex !== currentDayIndex) {
       onDayIndexChange?.(newDayIndex);
@@ -102,13 +221,13 @@ const ScheduleGridBody = forwardRef<HTMLDivElement, ScheduleGridBodyProps>(({ sc
   };
 
   // 시간대 배열 (0-24시, 요양보호사 업무 시간)
-  const timeSlots = Array.from({ length: 25 }, (_, i) => ({
+  const timeSlots = Array.from({ length: 24 }, (_, i) => ({
     label: `${i.toString().padStart(2, '0')}:00`,
     time: i
   }));
 
   const weekDates = getWeekDates(currentWeek);
-  
+
   // 반응형 컬럼 너비 계산
   const calculateColumnWidth = () => {
     if (typeof window !== 'undefined') {
@@ -119,37 +238,113 @@ const ScheduleGridBody = forwardRef<HTMLDivElement, ScheduleGridBodyProps>(({ sc
     }
     return MIN_DAY_COLUMN_WIDTH;
   };
-  
+
   const dayColumnWidth = calculateColumnWidth();
   dayColumnWidthRef.current = dayColumnWidth;
-  
+
   // currentDayIndex가 변경될 때 스크롤 위치 조정
   useEffect(() => {
     if (scrollContainerRef.current) {
       // 프로그래밍 스크롤 플래그 설정
       isProgrammaticScroll.current = true;
-      
+
       const targetScrollLeft = currentDayIndex * dayColumnWidthRef.current;
-      
-      // 스크롤 애니메이션 완료를 기다린 후 플래그 리셋
+
+      // 스크롤 애니메이션 완료를 기다린 후 플래그 리셋 및 세로 스크롤 실행
       const checkScrollComplete = () => {
         if (scrollContainerRef.current) {
           const currentScrollLeft = scrollContainerRef.current.scrollLeft;
           const isComplete = Math.abs(currentScrollLeft - targetScrollLeft) < 5; // 5px 오차 허용
-          
+
           if (isComplete) {
             isProgrammaticScroll.current = false;
+            
+            // 가로 스크롤 완료 후 세로 스크롤 실행
+            setTimeout(() => {
+              const now = new Date();
+              const today = now.toISOString().split('T')[0];
+              
+              let targetScrollTop = 0;
+              
+              if (schedules.length > 0) {
+                // 오늘의 예정된 일정들 필터링
+                const todaySchedules = schedules.filter(schedule => {
+                  const scheduleDate = schedule.date;
+                  const scheduleTime = schedule.time.split(' - ')[0];
+                  const scheduleDateTime = new Date(`${scheduleDate}T${scheduleTime}`);
+                  
+                  return scheduleDate === today && 
+                         scheduleDateTime > now && 
+                         schedule.status === 'upcoming';
+                });
+                
+                if (todaySchedules.length > 0) {
+                  // 현재 시간에 가장 가까운 일정 찾기
+                  const closestSchedule = todaySchedules.reduce((closest, current) => {
+                    const currentTime = new Date(`${current.date}T${current.time.split(' - ')[0]}`);
+                    const closestTime = new Date(`${closest.date}T${closest.time.split(' - ')[0]}`);
+                    
+                    const currentDiff = Math.abs(currentTime.getTime() - now.getTime());
+                    const closestDiff = Math.abs(closestTime.getTime() - now.getTime());
+                    
+                    return currentDiff < closestDiff ? current : closest;
+                  });
+                  
+                  // 가장 가까운 일정의 시간으로 스크롤 위치 계산
+                  const scheduleTime = closestSchedule.time.split(' - ')[0];
+                  const [scheduleHour, scheduleMinute] = scheduleTime.split(':').map(Number);
+                  const scheduleMinutes = scheduleHour * 60 + scheduleMinute;
+                  targetScrollTop = (scheduleMinutes / 60) * HOUR_HEIGHT - 16;
+                  
+                  console.log('Vertical scroll after horizontal scroll to closest schedule:', {
+                    schedule: closestSchedule,
+                    time: scheduleTime,
+                    targetScrollTop
+                  });
+                } else {
+                  // 오늘 예정된 일정이 없으면 현재 시간으로 스크롤
+                  const currentHour = now.getHours();
+                  const currentMinute = now.getMinutes();
+                  const currentMinutes = currentHour * 60 + currentMinute;
+                  targetScrollTop = (currentMinutes / 60) * HOUR_HEIGHT - 16;
+                  
+                  console.log('Vertical scroll after horizontal scroll to current time:', {
+                    currentTime: `${currentHour}:${currentMinute}`,
+                    targetScrollTop
+                  });
+                }
+              } else {
+                // 스케줄 데이터가 없어도 현재 시간으로 스크롤
+                const currentHour = now.getHours();
+                const currentMinute = now.getMinutes();
+                const currentMinutes = currentHour * 60 + currentMinute;
+                targetScrollTop = (currentMinutes / 60) * HOUR_HEIGHT - 16;
+                
+                console.log('Vertical scroll after horizontal scroll (no data):', {
+                  currentTime: `${currentHour}:${currentMinute}`,
+                  targetScrollTop
+                });
+              }
+              
+              if (scrollContainerRef.current) {
+                scrollContainerRef.current.scrollTop = Math.max(0, targetScrollTop);
+                console.log('Vertical scroll applied after horizontal scroll:', {
+                  scrollTop: scrollContainerRef.current.scrollTop,
+                  targetScrollTop
+                });
+              }
+            }, 100); // 가로 스크롤 완료 후 100ms 지연
           } else {
             requestAnimationFrame(checkScrollComplete);
           }
         }
       };
-      
+
       scrollContainerRef.current.scrollLeft = targetScrollLeft;
       requestAnimationFrame(checkScrollComplete);
     }
-  }, [currentDayIndex]);
-  
+  }, [currentDayIndex, schedules]);
+
   const isToday = (date: Date) => {
     const today = new Date();
     return date.toDateString() === today.toDateString();
@@ -173,7 +368,8 @@ const ScheduleGridBody = forwardRef<HTMLDivElement, ScheduleGridBodyProps>(({ sc
     const [startHour, startMinute] = startTime.split(':').map(Number);
     const startMinutes = startHour * 60 + startMinute;
     const top = (startMinutes / 60) * HOUR_HEIGHT;
-    const height = Math.max((duration / 60) * HOUR_HEIGHT, 18);
+    // 최소 높이를 더 늘려서 큰 폰트와 칩을 수용할 수 있도록 함
+    const height = Math.max((duration / 60) * HOUR_HEIGHT, 45);
     return { top, height };
   };
 
@@ -193,17 +389,37 @@ const ScheduleGridBody = forwardRef<HTMLDivElement, ScheduleGridBodyProps>(({ sc
     }
   };
 
+  // 상태별 배경 스타일 계산
+  const getStatusStyle = (status: string, isRegular?: boolean) => {
+    const baseStyle = {
+      background: `var(--${getStatusColor(status)}-3)`,
+      border: `1px solid var(--${getStatusColor(status)}-11)`,
+      color: `var(--${getStatusColor(status)}-11)`,
+    };
+
+    // 정기 일정인 경우 보라색 스타일
+    if (isRegular) {
+      return {
+        background: 'var(--violet-3)',
+        border: '1px solid var(--violet-11)',
+        color: 'var(--violet-11)',
+      };
+    }
+
+    return baseStyle;
+  };
+
   return (
-    <div style={{ 
-      flex: 1, 
-      position: 'relative', 
+    <div style={{
+      flex: 1,
+      position: 'relative',
       background: 'transparent',
       minHeight: 0,
       height: 'calc(100vh - 400px)' // 적절한 높이 설정
     }} ref={gridRef}>
-      
+
       {/* 전체 스크롤 컨테이너 */}
-      <div 
+      <div
         ref={scrollContainerRef}
         style={{
           width: '100%',
@@ -216,12 +432,12 @@ const ScheduleGridBody = forwardRef<HTMLDivElement, ScheduleGridBodyProps>(({ sc
         {/* 전체 그리드 컨테이너 */}
         <div style={{
           width: TIME_LABEL_WIDTH + (weekDates.length * dayColumnWidth),
-          minHeight: HOUR_HEIGHT * 25 + GRID_TOP_OFFSET,
+          minHeight: HOUR_HEIGHT * 26 + GRID_TOP_OFFSET, // 26시간으로 설정하여 확실히 스크롤 가능하게
           position: 'relative'
         }}>
-          
+
           {/* 요일 헤더 */}
-          <div style={{ 
+          <div style={{
             display: 'flex',
             height: GRID_TOP_OFFSET,
             position: 'sticky',
@@ -233,13 +449,13 @@ const ScheduleGridBody = forwardRef<HTMLDivElement, ScheduleGridBodyProps>(({ sc
             boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
           }}>
             {/* 시간 라벨 헤더 공간 */}
-            <div style={{ 
-              width: TIME_LABEL_WIDTH, 
+            <div style={{
+              width: TIME_LABEL_WIDTH,
               flexShrink: 0,
               background: 'white',
               borderRight: '1px solid var(--gray-6)'
             }} />
-            
+
             {/* 날짜 헤더 */}
             {weekDates.map((date, idx) => (
               <div key={idx} style={{
@@ -262,10 +478,10 @@ const ScheduleGridBody = forwardRef<HTMLDivElement, ScheduleGridBodyProps>(({ sc
           {/* 그리드 본문 */}
           <div style={{ display: 'flex', position: 'relative' }}>
             {/* 시간 라벨 - 고정 */}
-            <div style={{ 
-              width: TIME_LABEL_WIDTH, 
-              flexShrink: 0, 
-              position: 'sticky', 
+            <div style={{
+              width: TIME_LABEL_WIDTH,
+              flexShrink: 0,
+              position: 'sticky',
               left: 0,
               zIndex: 20,
               background: 'white',
@@ -286,15 +502,15 @@ const ScheduleGridBody = forwardRef<HTMLDivElement, ScheduleGridBodyProps>(({ sc
                 }}>{slot.label}</div>
               ))}
             </div>
-            
+
             {/* 날짜 컬럼들 */}
             {weekDates.map((date, dateIdx) => (
-              <div key={dateIdx} style={{ 
+              <div key={dateIdx} style={{
                 width: dayColumnWidth,
                 flexShrink: 0,
-                position: 'relative', 
-                height: HOUR_HEIGHT * 24, 
-                borderRight: dateIdx < 6 ? '1px solid var(--gray-6)' : undefined 
+                position: 'relative',
+                height: HOUR_HEIGHT * 24, // 이미 24시간으로 설정됨
+                borderRight: dateIdx < 6 ? '1px solid var(--gray-6)' : undefined
               }}>
                 {/* 수평선 */}
                 {timeSlots.map((slot, i) => (
@@ -308,11 +524,11 @@ const ScheduleGridBody = forwardRef<HTMLDivElement, ScheduleGridBodyProps>(({ sc
                     zIndex: 1
                   }} />
                 ))}
-                
+
                 {/* 스케줄 블록 오버레이 */}
                 {getSchedulesForDate(date).map((schedule, idx) => {
                   const { top, height } = calculateSchedulePosition(schedule.time, schedule.duration * 60);
-                  const statusColor = getStatusColor(schedule.status);
+                  const statusStyle = getStatusStyle(schedule.status, schedule.isRegular);
                   return (
                     <button
                       key={idx}
@@ -322,12 +538,9 @@ const ScheduleGridBody = forwardRef<HTMLDivElement, ScheduleGridBodyProps>(({ sc
                         right: 4,
                         top,
                         height,
-                        background: `var(--${statusColor}-3)`,
-                        border: `1px solid var(--${statusColor}-11)`,
                         borderRadius: 4,
-                        color: `var(--${statusColor}-11)`,
                         fontSize: 10,
-                        padding: '4px 6px',
+                        padding: '6px 8px',
                         zIndex: 10,
                         display: 'flex',
                         flexDirection: 'column',
@@ -336,7 +549,8 @@ const ScheduleGridBody = forwardRef<HTMLDivElement, ScheduleGridBodyProps>(({ sc
                         overflow: 'hidden',
                         cursor: 'pointer',
                         boxShadow: '0 1px 2px 0 rgba(0,0,0,0.08)',
-                        outline: 'none'
+                        outline: 'none',
+                        ...statusStyle
                       }}
                       onClick={() => navigate(`/main/schedule-detail?id=${schedule.id}`)}
                       onKeyDown={(e) => {
@@ -346,16 +560,94 @@ const ScheduleGridBody = forwardRef<HTMLDivElement, ScheduleGridBodyProps>(({ sc
                         }
                       }}
                     >
-                      <div style={{ fontWeight: 600, fontSize: 11, lineHeight: 1.1 }}>
-                        {schedule.serviceType}
-                      </div>
-                      <div style={{ fontSize: 10, lineHeight: 1.1, marginTop: 1 }}>
+                      {/* 신청자 이름 */}
+                      <div style={{ fontWeight: 700, fontSize: 13, lineHeight: 1.2 }}>
                         {schedule.clientName}
+                      </div>
+                      
+                      {/* 방문 시간 */}
+                      <div style={{ fontSize: 12, lineHeight: 1.2, marginTop: 2 }}>
+                        {schedule.time}
+                      </div>
+                      
+                      {/* 방문 위치 (축약) */}
+                      <div style={{ 
+                        fontSize: 11, 
+                        lineHeight: 1.2, 
+                        marginTop: 2, 
+                        color: 'rgba(0,0,0,0.7)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}>
+                        {schedule.address.split(' ').slice(0, 2).join(' ')}
+                      </div>
+                      
+                      {/* 상태별 칩 */}
+                      <div style={{ 
+                        display: 'flex', 
+                        gap: 2, 
+                        marginTop: 3,
+                        flexWrap: 'wrap'
+                      }}>
+                        {/* 정기 일정 칩 */}
+                        {schedule.isRegular && (
+                          <div style={{ 
+                            fontSize: 9, 
+                            background: 'var(--violet-9)', 
+                            color: 'white',
+                            padding: '2px 6px',
+                            borderRadius: 3,
+                            fontWeight: 600
+                          }}>
+                            정기
+                          </div>
+                        )}
+                        
+                        {/* 상태별 칩 */}
+                        {schedule.status === 'upcoming' && (
+                          <div style={{ 
+                            fontSize: 9, 
+                            background: 'var(--blue-9)', 
+                            color: 'white',
+                            padding: '2px 6px',
+                            borderRadius: 3,
+                            fontWeight: 600
+                          }}>
+                            예정
+                          </div>
+                        )}
+                        
+                        {schedule.status === 'completed' && (
+                          <div style={{ 
+                            fontSize: 9, 
+                            background: 'var(--green-9)', 
+                            color: 'white',
+                            padding: '2px 6px',
+                            borderRadius: 3,
+                            fontWeight: 600
+                          }}>
+                            완료
+                          </div>
+                        )}
+                        
+                        {schedule.status === 'cancelled' && (
+                          <div style={{ 
+                            fontSize: 9, 
+                            background: 'var(--red-9)', 
+                            color: 'white',
+                            padding: '2px 6px',
+                            borderRadius: 3,
+                            fontWeight: 600
+                          }}>
+                            취소
+                          </div>
+                        )}
                       </div>
                     </button>
                   );
                 })}
-                
+
                 {/* 현재 시간 라인 */}
                 {isToday(date) && (
                   <div style={{

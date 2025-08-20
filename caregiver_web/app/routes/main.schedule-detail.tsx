@@ -533,7 +533,7 @@ export default function ScheduleDetailPage() {
                 일정 목록으로 돌아가기
               </Button>
               <Button variant="soft" color="orange" onClick={handleSkip} className="flex-1">
-                건너뛰기
+                이번 회차 건너뛰기
               </Button>
             </>
           )}

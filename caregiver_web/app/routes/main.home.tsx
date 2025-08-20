@@ -23,11 +23,34 @@ interface Schedule {
   regularSequence?: { current: number; total: number };
 }
 
+interface RegularProposal {
+  id: string;
+  applicantName: string;
+  period: string;
+  totalSessions: number;
+  dayOfWeek: string;
+  timeSlot: string;
+  address: string;
+  serviceType: string;
+  specialRequests?: string;
+  status: 'pending' | 'approved' | 'rejected';
+}
 
+interface RecentAssignment {
+  id: string;
+  date: string;
+  time: string;
+  applicantName: string;
+  location: string;
+  institutionId?: string;
+  isInstitutionSelected: boolean;
+}
 
 export default function HomePage() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [userName, setUserName] = useState("");
+  const [regularProposals, setRegularProposals] = useState<RegularProposal[]>([]);
+  const [recentAssignments, setRecentAssignments] = useState<RecentAssignment[]>([]);
 
   const [isLoading, setIsLoading] = useState(true);
 
@@ -88,6 +111,55 @@ export default function HomePage() {
           status: "upcoming",
           isRegular: true,
           regularSequence: { current: 1, total: 6 }
+        }
+      ]);
+
+      // 정기 제안 더미 데이터
+      setRegularProposals([
+        {
+          id: "proposal-1",
+          applicantName: "이미라",
+          period: "2025년 8월 20일 ~ 2025년 12월 31일",
+          totalSessions: 20,
+          dayOfWeek: "월요일, 수요일, 금요일",
+          timeSlot: "09:00 - 11:00",
+          address: "서울시 강남구 역삼동",
+          serviceType: "방문요양",
+          specialRequests: "부드럽고 친절한 서비스 부탁드립니다.",
+          status: "pending"
+        },
+        {
+          id: "proposal-2",
+          applicantName: "박영수",
+          period: "2025년 9월 1일 ~ 2025년 11월 30일",
+          totalSessions: 12,
+          dayOfWeek: "화요일, 목요일",
+          timeSlot: "14:00 - 16:00",
+          address: "서울시 서초구 서초동",
+          serviceType: "방문요양",
+          specialRequests: "경험이 풍부한 요양보호사 선호합니다.",
+          status: "pending"
+        }
+      ]);
+
+      // 최근 배정 더미 데이터
+      setRecentAssignments([
+        {
+          id: "assignment-1",
+          date: "2025-08-21",
+          time: "14:00 - 16:00",
+          applicantName: "김철수",
+          location: "서울시 강남구 역삼동",
+          isInstitutionSelected: false
+        },
+        {
+          id: "6",
+          date: "2025-08-22",
+          time: "08:00 - 10:00",
+          applicantName: "한지영",
+          location: "서울시 중구 명동",
+          isInstitutionSelected: true,
+          institutionId: "inst-001"
         }
       ]);
 
@@ -177,6 +249,12 @@ export default function HomePage() {
 
         {/* 내일 미리보기 */}
         <TomorrowPreview schedules={schedules} />
+
+        {/* 정기 제안 알림 */}
+        <RegularProposalNotification proposals={regularProposals} />
+
+        {/* 최근 배정 알림 */}
+        <RecentAssignmentNotification assignments={recentAssignments} />
 
       </Flex>
     </Container>

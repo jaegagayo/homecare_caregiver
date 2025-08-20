@@ -28,7 +28,20 @@ export default function SchedulePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [currentView, setCurrentView] = useState<'calendar' | 'list'>('calendar');
-  const [currentDayIndex, setCurrentDayIndex] = useState(0); // 현재 표시할 3일의 시작 인덱스
+  const [currentDayIndex, setCurrentDayIndex] = useState(() => {
+    // 오늘 날짜가 가운데로 오도록 초기 인덱스 설정
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0: 일요일, 1: 월요일, ..., 6: 토요일
+    
+    // 오늘 날짜가 3일 중 가운데로 오도록 계산
+    if (dayOfWeek <= 1) {
+      return 0; // 일(0), 월(1)은 0-2일 (0,1,2)
+    } else if (dayOfWeek >= 5) {
+      return 4; // 금(5), 토(6)는 4-6일 (4,5,6)
+    } else {
+      return dayOfWeek - 1; // 화(2), 수(3), 목(4)은 각각 가운데
+    }
+  }); // 현재 표시할 3일의 시작 인덱스
 
   // 주간 네비게이션 함수
   const navigateWeek = (direction: 'prev' | 'next' | 'today') => {
