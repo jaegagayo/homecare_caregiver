@@ -1,5 +1,5 @@
 import { toPng, toJpeg, toSvg } from 'html-to-image';
-import { HOUR_HEIGHT, GRID_TOP_OFFSET } from '../components/Calendar/CaregiverSchedule/ScheduleGrid';
+import { HOUR_HEIGHT, GRID_TOP_OFFSET } from '../components/Schedule/CalendarView/ScheduleGridBody';
 
 // html-to-image 옵션 타입 정의
 interface HtmlToImageOptions {

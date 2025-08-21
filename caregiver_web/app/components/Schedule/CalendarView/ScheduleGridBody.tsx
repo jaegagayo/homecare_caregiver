@@ -23,8 +23,8 @@ interface ScheduleGridBodyProps {
   onDayIndexChange?: (newIndex: number) => void; // 헤더 동기화를 위한 콜백
 }
 
-const HOUR_HEIGHT = 60; // px, 1시간당 높이
-const GRID_TOP_OFFSET = 28; // px, 헤더(요일) 높이
+export const HOUR_HEIGHT = 60; // px, 1시간당 높이
+export const GRID_TOP_OFFSET = 28; // px, 헤더(요일) 높이
 const TIME_LABEL_WIDTH = 60; // px, 시간 라벨 너비
 const MIN_DAY_COLUMN_WIDTH = 100; // px, 최소 날짜 컬럼 너비
 
