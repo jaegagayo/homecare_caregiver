@@ -50,13 +50,15 @@ export default function MainLayout() {
       setCurrentPageTitle("승인 대기");
     } else if (path.includes("/main/institution-registration")) {
       setCurrentPageTitle("기관 소속 등록");
-    } else if (path.includes("/main/profile")) {
-      setCurrentPageTitle("프로필");
+    } else if (path.includes("/main/my-page")) {
+      setCurrentPageTitle("마이페이지");
+    } else if (path.includes("/main/profile-management")) {
+      setCurrentPageTitle("프로필 관리");
     }
   }, [navigate, location]);
 
   const handleProfile = () => {
-    navigate("/main/profile");
+    navigate("/main/my-page");
   };
 
   const handleGoBack = () => {

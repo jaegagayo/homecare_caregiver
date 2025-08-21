@@ -368,8 +368,7 @@ const ScheduleGridBody = forwardRef<HTMLDivElement, ScheduleGridBodyProps>(({ sc
     const [startHour, startMinute] = startTime.split(':').map(Number);
     const startMinutes = startHour * 60 + startMinute;
     const top = (startMinutes / 60) * HOUR_HEIGHT;
-    // 최소 높이를 더 늘려서 큰 폰트와 칩을 수용할 수 있도록 함
-    const height = Math.max((duration / 60) * HOUR_HEIGHT, 45);
+    const height = Math.max((duration / 60) * HOUR_HEIGHT, 18);
     return { top, height };
   };
 
@@ -387,26 +386,6 @@ const ScheduleGridBody = forwardRef<HTMLDivElement, ScheduleGridBodyProps>(({ sc
       case 'cancelled': return 'red';
       default: return 'gray';
     }
-  };
-
-  // 상태별 배경 스타일 계산
-  const getStatusStyle = (status: string, isRegular?: boolean) => {
-    const baseStyle = {
-      background: `var(--${getStatusColor(status)}-3)`,
-      border: `1px solid var(--${getStatusColor(status)}-11)`,
-      color: `var(--${getStatusColor(status)}-11)`,
-    };
-
-    // 정기 일정인 경우 보라색 스타일
-    if (isRegular) {
-      return {
-        background: 'var(--violet-3)',
-        border: '1px solid var(--violet-11)',
-        color: 'var(--violet-11)',
-      };
-    }
-
-    return baseStyle;
   };
 
   return (
@@ -528,7 +507,7 @@ const ScheduleGridBody = forwardRef<HTMLDivElement, ScheduleGridBodyProps>(({ sc
                 {/* 스케줄 블록 오버레이 */}
                 {getSchedulesForDate(date).map((schedule, idx) => {
                   const { top, height } = calculateSchedulePosition(schedule.time, schedule.duration * 60);
-                  const statusStyle = getStatusStyle(schedule.status, schedule.isRegular);
+                  const statusColor = getStatusColor(schedule.status);
                   return (
                     <button
                       key={idx}
@@ -538,9 +517,12 @@ const ScheduleGridBody = forwardRef<HTMLDivElement, ScheduleGridBodyProps>(({ sc
                         right: 4,
                         top,
                         height,
+                        background: `var(--${statusColor}-3)`,
+                        border: `1px solid var(--${statusColor}-11)`,
                         borderRadius: 4,
+                        color: `var(--${statusColor}-11)`,
                         fontSize: 10,
-                        padding: '6px 8px',
+                        padding: '4px 6px',
                         zIndex: 10,
                         display: 'flex',
                         flexDirection: 'column',
@@ -549,8 +531,7 @@ const ScheduleGridBody = forwardRef<HTMLDivElement, ScheduleGridBodyProps>(({ sc
                         overflow: 'hidden',
                         cursor: 'pointer',
                         boxShadow: '0 1px 2px 0 rgba(0,0,0,0.08)',
-                        outline: 'none',
-                        ...statusStyle
+                        outline: 'none'
                       }}
                       onClick={() => navigate(`/main/schedule-detail?id=${schedule.id}`)}
                       onKeyDown={(e) => {
@@ -560,89 +541,11 @@ const ScheduleGridBody = forwardRef<HTMLDivElement, ScheduleGridBodyProps>(({ sc
                         }
                       }}
                     >
-                      {/* 신청자 이름 */}
-                      <div style={{ fontWeight: 700, fontSize: 13, lineHeight: 1.2 }}>
+                      <div style={{ fontWeight: 600, fontSize: 11, lineHeight: 1.1 }}>
+                        {schedule.serviceType}
+                      </div>
+                      <div style={{ fontSize: 10, lineHeight: 1.1, marginTop: 1 }}>
                         {schedule.clientName}
-                      </div>
-                      
-                      {/* 방문 시간 */}
-                      <div style={{ fontSize: 12, lineHeight: 1.2, marginTop: 2 }}>
-                        {schedule.time}
-                      </div>
-                      
-                      {/* 방문 위치 (축약) */}
-                      <div style={{ 
-                        fontSize: 11, 
-                        lineHeight: 1.2, 
-                        marginTop: 2, 
-                        color: 'rgba(0,0,0,0.7)',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
-                      }}>
-                        {schedule.address.split(' ').slice(0, 2).join(' ')}
-                      </div>
-                      
-                      {/* 상태별 칩 */}
-                      <div style={{ 
-                        display: 'flex', 
-                        gap: 2, 
-                        marginTop: 3,
-                        flexWrap: 'wrap'
-                      }}>
-                        {/* 정기 일정 칩 */}
-                        {schedule.isRegular && (
-                          <div style={{ 
-                            fontSize: 9, 
-                            background: 'var(--violet-9)', 
-                            color: 'white',
-                            padding: '2px 6px',
-                            borderRadius: 3,
-                            fontWeight: 600
-                          }}>
-                            정기
-                          </div>
-                        )}
-                        
-                        {/* 상태별 칩 */}
-                        {schedule.status === 'upcoming' && (
-                          <div style={{ 
-                            fontSize: 9, 
-                            background: 'var(--blue-9)', 
-                            color: 'white',
-                            padding: '2px 6px',
-                            borderRadius: 3,
-                            fontWeight: 600
-                          }}>
-                            예정
-                          </div>
-                        )}
-                        
-                        {schedule.status === 'completed' && (
-                          <div style={{ 
-                            fontSize: 9, 
-                            background: 'var(--green-9)', 
-                            color: 'white',
-                            padding: '2px 6px',
-                            borderRadius: 3,
-                            fontWeight: 600
-                          }}>
-                            완료
-                          </div>
-                        )}
-                        
-                        {schedule.status === 'cancelled' && (
-                          <div style={{ 
-                            fontSize: 9, 
-                            background: 'var(--red-9)', 
-                            color: 'white',
-                            padding: '2px 6px',
-                            borderRadius: 3,
-                            fontWeight: 600
-                          }}>
-                            취소
-                          </div>
-                        )}
                       </div>
                     </button>
                   );
