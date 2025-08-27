@@ -29,7 +29,7 @@ export default function ScheduleListView({ schedules }: ScheduleListViewProps) {
   // 필터별 일정 분류
   const getFilteredSchedules = () => {
     const now = new Date();
-    
+
     switch (selectedFilter) {
       case 'scheduled-all':
         return schedules.filter(s => {
@@ -77,69 +77,101 @@ export default function ScheduleListView({ schedules }: ScheduleListViewProps) {
   };
 
   return (
-    <Flex direction="column" gap="4">
-      {/* 필터 Select */}
-      <Select.Root value={selectedFilter} onValueChange={(value) => setSelectedFilter(value as 'scheduled-all' | 'scheduled-regular' | 'completed')}>
-        <Select.Trigger placeholder="필터 선택" />
-        <Select.Content>
-          <Select.Item value="scheduled-all">
-            예정-전체 ({schedules.filter(s => {
-              const now = new Date();
-              const scheduleDateTime = new Date(`${s.date} ${s.time.split(' - ')[0]}`);
-              return (s.status === 'scheduled') && scheduleDateTime > now;
-            }).length})
-          </Select.Item>
-          <Select.Item value="scheduled-regular">
-            예정-정기 ({schedules.filter(s => {
-              const now = new Date();
-              const scheduleDateTime = new Date(`${s.date} ${s.time.split(' - ')[0]}`);
-              return (s.status === 'scheduled') && s.isRegular && scheduleDateTime > now;
-            }).length})
-          </Select.Item>
-          <Select.Item value="completed">
-            완료 ({schedules.filter(s => s.status === 'completed').length})
-          </Select.Item>
-        </Select.Content>
-      </Select.Root>
+    <Flex
+      direction="column"
+      gap="4"
+      style={{
+        height: '100vh',
+        marginTop: '-64px',
+        paddingTop: '64px',
+        marginBottom: '-80px',
+        paddingBottom: '80px'
+      }}>
+      {/* 플로팅 필터 버튼 */}
+      <div style={{
+        position: 'fixed',
+        top: '68px', // 첫 번째 헤더 가운데 위치로 조정
+        right: 'var(--spacing-md, 16px)',
+        zIndex: 1000
+      }}>
+        <Select.Root value={selectedFilter} onValueChange={(value) => setSelectedFilter(value as 'scheduled-all' | 'scheduled-regular' | 'completed')}>
+          <Select.Trigger placeholder="필터 선택" />
+          <Select.Content>
+            <Select.Item value="scheduled-all">
+              예정-전체 ({schedules.filter(s => {
+                const now = new Date();
+                const scheduleDateTime = new Date(`${s.date} ${s.time.split(' - ')[0]}`);
+                return (s.status === 'scheduled') && scheduleDateTime > now;
+              }).length})
+            </Select.Item>
+            <Select.Item value="scheduled-regular">
+              예정-정기 ({schedules.filter(s => {
+                const now = new Date();
+                const scheduleDateTime = new Date(`${s.date} ${s.time.split(' - ')[0]}`);
+                return (s.status === 'scheduled') && s.isRegular && scheduleDateTime > now;
+              }).length})
+            </Select.Item>
+            <Select.Item value="completed">
+              완료 ({schedules.filter(s => s.status === 'completed').length})
+            </Select.Item>
+          </Select.Content>
+        </Select.Root>
+      </div>
 
       {/* 일정 리스트 */}
-      {sortedSchedules.length === 0 ? (
-        <div className="p-8 text-center">
-          <Text color="gray" size="3">
-            {selectedFilter === 'completed' ? '완료된 일정이 없습니다.' : '예정된 일정이 없습니다.'}
-          </Text>
-        </div>
-      ) : (
-        (() => {
-          // 날짜별로 그룹화
-          const groupedSchedules = sortedSchedules.reduce((groups, schedule) => {
-            const date = schedule.date;
-            if (!groups[date]) {
-              groups[date] = [];
-            }
-            groups[date].push(schedule);
-            return groups;
-          }, {} as Record<string, Schedule[]>);
+      <div
+        style={{
+          height: '100%',
+          overflow: 'auto',
+          scrollBehavior: 'smooth',
+          WebkitOverflowScrolling: 'touch',
+          paddingBottom: '40px'
+        }}
+      >
+        {sortedSchedules.length === 0 ? (
+          <div className="p-8 text-center">
+            <Text color="gray" size="3">
+              {selectedFilter === 'completed' ? '완료된 일정이 없습니다.' : '예정된 일정이 없습니다.'}
+            </Text>
+          </div>
+        ) : (
+          (() => {
+            // 날짜별로 그룹화
+            const groupedSchedules = sortedSchedules.reduce((groups, schedule) => {
+              const date = schedule.date;
+              if (!groups[date]) {
+                groups[date] = [];
+              }
+              groups[date].push(schedule);
+              return groups;
+            }, {} as Record<string, Schedule[]>);
 
-          return Object.entries(groupedSchedules).map(([date, daySchedules]) => (
-            <div key={date}>
-              {/* 날짜 헤더 */}
-              <div className="mb-3 mt-4 first:mt-0">
-                <Heading size="4">{formatDate(date)}</Heading>
+            return Object.entries(groupedSchedules).map(([date, daySchedules]) => (
+              <div key={date}>
+                {/* 날짜 헤더 */}
+                <div
+                  className="sticky top-0 z-10 bg-gray-50 mb-2"
+                  style={{
+                    paddingTop: Object.keys(groupedSchedules).indexOf(date) === 0 ? '16px' : '16px',
+                  }}
+                >
+                  <Heading size="4" style={{ marginTop: '-8px' }}>{formatDate(date)}</Heading>
+                  <div className="w-full h-px bg-gray-200 mt-4"></div>
+                </div>
+
+                {/* 해당 날짜의 일정 리스트 */}
+                <ScheduleList
+                  schedules={daySchedules}
+                  showStatus={true}
+                  getStatusColor={getStatusColor}
+                  getStatusText={getStatusText}
+                  onClickSchedule={handleScheduleClick}
+                />
               </div>
-              
-              {/* 해당 날짜의 일정 리스트 */}
-              <ScheduleList
-                schedules={daySchedules}
-                showStatus={true}
-                getStatusColor={getStatusColor}
-                getStatusText={getStatusText}
-                onClickSchedule={handleScheduleClick}
-              />
-            </div>
-          ));
-        })()
-      )}
+            ));
+          })()
+        )}
+      </div>
     </Flex>
   );
 }
