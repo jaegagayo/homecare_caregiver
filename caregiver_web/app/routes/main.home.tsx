@@ -6,8 +6,8 @@ import {
   Text
 } from "@radix-ui/themes";
 import { 
-  TodayScheduleList, 
-  TomorrowPreview, 
+  UpcomingScheduleCard,
+  ScheduleList,
   RegularProposalNotification, 
   RecentAssignmentNotification 
 } from "../components/Home";
@@ -237,18 +237,30 @@ export default function HomePage() {
           </Text>
         </div>
 
-
-
-        {/* 오늘의 일정 */}
-        <TodayScheduleList 
-          schedules={schedules}
-          getStatusColor={getStatusColor}
-          getStatusText={getStatusText}
+        {/* 첫 번째 일정 (상세 정보) */}
+        <UpcomingScheduleCard 
+          schedule={schedules.length > 0 ? schedules[0] : null}
           calculateTimeRemaining={calculateTimeRemaining}
         />
 
+        {/* 나머지 일정들 */}
+        <ScheduleList 
+          schedules={schedules.slice(1)} // 첫 번째 일정 제외
+          showStatus={true}
+          getStatusColor={getStatusColor}
+          getStatusText={getStatusText}
+          emptyMessage="추가 일정이 없습니다."
+        />
+
         {/* 내일 미리보기 */}
-        <TomorrowPreview schedules={schedules} />
+        <ScheduleList 
+          schedules={schedules}
+          title="내일 일정 미리보기"
+          subtitle="내일로 넘어가는 자정 이후에는 변경이 불가합니다. 필요 시 오늘 안에 확인해 주세요."
+          filterFunction={(schedule) => schedule.status === 'upcoming' && !!schedule.isRegular}
+          showStatus={false} // 내일 일정은 모두 "예정"이므로 상태 배지 숨김
+          emptyMessage="내일 배정된 일정이 없습니다."
+        />
 
         {/* 정기 제안 알림 */}
         <RegularProposalNotification proposals={regularProposals} />
