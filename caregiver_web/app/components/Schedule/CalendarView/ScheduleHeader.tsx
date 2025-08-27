@@ -70,7 +70,7 @@ export default function ScheduleHeader({ currentWeek, currentDayIndex, schedules
     .reduce((total, s) => total + (s.duration * s.hourlyRate), 0);
 
   return (
-    <Flex direction="column" gap="3" style={{ flexShrink: 0, marginBottom: '16px' }}>
+    <Flex direction="column" gap="3" style={{ flexShrink: 0, marginBottom: '16px', paddingTop: '4px' }}>
       {/* 날짜 범위와 네비게이션 */}
       <Flex justify="between" align="center">
         <Text size="5" weight="bold">

@@ -394,7 +394,7 @@ const ScheduleGridBody = forwardRef<HTMLDivElement, ScheduleGridBodyProps>(({ sc
       position: 'relative',
       background: 'transparent',
       minHeight: 0,
-      height: 'calc(100vh - 400px)' // 적절한 높이 설정
+      height: 'calc(100vh - 300px)' // 스크롤 영역 확장
     }} ref={gridRef}>
 
       {/* 전체 스크롤 컨테이너 */}

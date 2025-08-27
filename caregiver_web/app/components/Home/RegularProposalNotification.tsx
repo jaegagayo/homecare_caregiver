@@ -3,11 +3,10 @@ import { useNavigate } from "@remix-run/react";
 import { 
   Flex, 
   Text,
-  Badge,
   Heading,
   Button
 } from "@radix-ui/themes";
-import { Info, Calendar, User, ChevronLeft, ChevronRight } from "lucide-react";
+import { Info, Calendar, User, ChevronLeft, ChevronRight, Clock } from "lucide-react";
 
 interface RegularProposal {
   id: string;
@@ -15,6 +14,7 @@ interface RegularProposal {
   period: string;
   totalSessions: number;
   dayOfWeek: string;
+  timeSlot: string;
   status: 'pending' | 'approved' | 'rejected';
 }
 
@@ -104,6 +104,10 @@ export default function RegularProposalNotification({ proposals }: RegularPropos
             <Flex align="center" gap="2">
               <Calendar size={16} className="text-gray-500" />
               <Text size="3" weight="medium">{currentProposal.dayOfWeek}</Text>
+            </Flex>
+            <Flex align="center" gap="2">
+              <Clock size={16} className="text-gray-500" />
+              <Text size="3" weight="medium">{currentProposal.timeSlot}</Text>
             </Flex>
           </div>
 
