@@ -27,5 +27,16 @@ export interface ScheduleDetail {
   specialNotes: string;
 }
 
+export interface Schedule {
+  id: string;
+  time: string;
+  clientName: string;
+  address: string;
+  serviceType: string;
+  status: 'scheduled' | 'completed' | 'cancelled';
+  isRegular?: boolean;
+  regularSequence?: { current: number; total: number };
+}
+
 
 

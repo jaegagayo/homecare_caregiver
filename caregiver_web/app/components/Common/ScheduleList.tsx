@@ -16,7 +16,7 @@ interface Schedule {
   clientName: string;
   address: string;
   serviceType: string;
-  status: 'upcoming' | 'completed' | 'cancelled';
+  status: 'scheduled' | 'completed' | 'cancelled';
   isRegular?: boolean;
   regularSequence?: { current: number; total: number };
 }

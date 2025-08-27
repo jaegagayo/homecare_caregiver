@@ -8,23 +8,12 @@ import {
 
 import { 
   UpcomingScheduleCard,
-  ScheduleList,
   RegularProposalNotification, 
   RecentAssignmentNotification 
 } from "../components/Home";
-import { WarningCard } from "../components/Common";
+import { ScheduleList, WarningCard } from "../components/Common";
 import { formatToday } from "../utils/formatters";
-
-interface Schedule {
-  id: string;
-  time: string;
-  clientName: string;
-  address: string;
-  serviceType: string;
-  status: 'upcoming' | 'completed' | 'cancelled';
-  isRegular?: boolean;
-  regularSequence?: { current: number; total: number };
-}
+import { Schedule } from "../types";
 
 interface RegularProposal {
   id: string;
@@ -73,7 +62,7 @@ export default function HomePage() {
           clientName: "김영희",
           address: "서울시 강남구 역삼동",
           serviceType: "방문요양",
-          status: "upcoming",
+          status: "scheduled",
           isRegular: true,
           regularSequence: { current: 3, total: 5 }
         },
@@ -83,7 +72,7 @@ export default function HomePage() {
           clientName: "박철수",
           address: "서울시 서초구 서초동",
           serviceType: "방문요양",
-          status: "upcoming"
+          status: "scheduled"
         },
         {
           id: "3",
@@ -101,7 +90,7 @@ export default function HomePage() {
           clientName: "최민수",
           address: "서울시 송파구 문정동",
           serviceType: "방문요양",
-          status: "upcoming",
+          status: "scheduled",
           isRegular: true,
           regularSequence: { current: 2, total: 4 }
         },
@@ -111,7 +100,7 @@ export default function HomePage() {
           clientName: "정수진",
           address: "서울시 강동구 천호동",
           serviceType: "방문요양",
-          status: "upcoming",
+          status: "scheduled",
           isRegular: true,
           regularSequence: { current: 1, total: 6 }
         }
@@ -233,7 +222,7 @@ export default function HomePage() {
         <div>
           <Heading size="5">안녕하세요, {userName}님! 👋</Heading>
           <Text size="3" color="gray">
-            {schedules.filter(s => s.status === 'upcoming').length > 0 
+            {schedules.filter(s => s.status === 'scheduled').length > 0 
               ? "곧 다가오는 일정을 확인해 보세요" 
               : "오늘도 좋은 하루 되세요"
             }
@@ -270,7 +259,7 @@ export default function HomePage() {
           />
           <ScheduleList 
             schedules={schedules}
-            filterFunction={(schedule) => schedule.status === 'upcoming' && !!schedule.isRegular}
+            filterFunction={(schedule) => schedule.status === 'scheduled' && !!schedule.isRegular}
             showStatus={false} // 내일 일정은 모두 "예정"이므로 상태 배지 숨김
             emptyMessage="내일 배정된 일정이 없습니다."
           />

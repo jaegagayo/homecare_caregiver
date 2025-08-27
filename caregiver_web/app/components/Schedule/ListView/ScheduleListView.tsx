@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from '@remix-run/react';
-import { Flex, Text, Badge, Card, Button } from '@radix-ui/themes';
-import { Clock, MapPin, User } from 'lucide-react';
+import { Flex, Select, Text, Heading } from '@radix-ui/themes';
+import { ScheduleList } from '../../Common';
+import { getStatusColor, getStatusText } from '../../../utils/scheduleStatus';
 
 interface Schedule {
   id: string;
@@ -10,7 +11,7 @@ interface Schedule {
   clientName: string;
   address: string;
   serviceType: string;
-  status: 'upcoming' | 'completed' | 'cancelled';
+  status: 'scheduled' | 'completed' | 'cancelled';
   duration: number;
   hourlyRate: number;
   isRegular?: boolean;
@@ -33,12 +34,12 @@ export default function ScheduleListView({ schedules }: ScheduleListViewProps) {
       case 'scheduled-all':
         return schedules.filter(s => {
           const scheduleDateTime = new Date(`${s.date} ${s.time.split(' - ')[0]}`);
-          return (s.status === 'upcoming') && scheduleDateTime > now;
+          return (s.status === 'scheduled') && scheduleDateTime > now;
         });
       case 'scheduled-regular':
         return schedules.filter(s => {
           const scheduleDateTime = new Date(`${s.date} ${s.time.split(' - ')[0]}`);
-          return (s.status === 'upcoming') && s.isRegular && scheduleDateTime > now;
+          return (s.status === 'scheduled') && s.isRegular && scheduleDateTime > now;
         });
       case 'completed':
         return schedules.filter(s => s.status === 'completed');
@@ -60,172 +61,85 @@ export default function ScheduleListView({ schedules }: ScheduleListViewProps) {
     }
   });
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'upcoming': return 'blue';
-      case 'completed': return 'green';
-      case 'cancelled': return 'red';
-      default: return 'gray';
-    }
-  };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'upcoming': return '예정';
-      case 'completed': return '완료';
-      case 'cancelled': return '취소';
-      default: return '알 수 없음';
-    }
-  };
 
-  const formatDateTime = (dateString: string, timeString: string) => {
+  const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const month = date.getMonth() + 1;
     const day = date.getDate();
     const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
     const weekday = weekdays[date.getDay()];
-    return `${month}월 ${day}일 (${weekday}) ${timeString}`;
+    return `${month}월 ${day}일 (${weekday})`;
   };
 
-  const handleScheduleClick = (schedule: Schedule) => {
-    navigate(`/main/schedule-detail?id=${schedule.id}`);
+  const handleScheduleClick = (scheduleId: string) => {
+    navigate(`/main/schedule-detail?id=${scheduleId}`);
   };
 
   return (
-    <Flex direction="column" gap="4" style={{ flex: 1, overflow: 'auto' }}>
-      {/* 필터칩 */}
-      <Flex gap="2" wrap="wrap">
-        <Button 
-          variant={selectedFilter === 'scheduled-all' ? 'solid' : 'ghost'} 
-          size="2"
-          onClick={() => setSelectedFilter('scheduled-all')}
-        >
-          예정-전체 ({schedules.filter(s => {
-            const now = new Date();
-            const scheduleDateTime = new Date(`${s.date} ${s.time.split(' - ')[0]}`);
-            return (s.status === 'upcoming') && scheduleDateTime > now;
-          }).length})
-        </Button>
-        <Button 
-          variant={selectedFilter === 'scheduled-regular' ? 'solid' : 'ghost'} 
-          size="2"
-          onClick={() => setSelectedFilter('scheduled-regular')}
-        >
-          예정-정기 ({schedules.filter(s => {
-            const now = new Date();
-            const scheduleDateTime = new Date(`${s.date} ${s.time.split(' - ')[0]}`);
-            return (s.status === 'upcoming') && s.isRegular && scheduleDateTime > now;
-          }).length})
-        </Button>
-        <Button 
-          variant={selectedFilter === 'completed' ? 'solid' : 'ghost'} 
-          size="2"
-          onClick={() => setSelectedFilter('completed')}
-        >
-          완료 ({schedules.filter(s => s.status === 'completed').length})
-        </Button>
-      </Flex>
+    <Flex direction="column" gap="4">
+      {/* 필터 Select */}
+      <Select.Root value={selectedFilter} onValueChange={(value) => setSelectedFilter(value as 'scheduled-all' | 'scheduled-regular' | 'completed')}>
+        <Select.Trigger placeholder="필터 선택" />
+        <Select.Content>
+          <Select.Item value="scheduled-all">
+            예정-전체 ({schedules.filter(s => {
+              const now = new Date();
+              const scheduleDateTime = new Date(`${s.date} ${s.time.split(' - ')[0]}`);
+              return (s.status === 'scheduled') && scheduleDateTime > now;
+            }).length})
+          </Select.Item>
+          <Select.Item value="scheduled-regular">
+            예정-정기 ({schedules.filter(s => {
+              const now = new Date();
+              const scheduleDateTime = new Date(`${s.date} ${s.time.split(' - ')[0]}`);
+              return (s.status === 'scheduled') && s.isRegular && scheduleDateTime > now;
+            }).length})
+          </Select.Item>
+          <Select.Item value="completed">
+            완료 ({schedules.filter(s => s.status === 'completed').length})
+          </Select.Item>
+        </Select.Content>
+      </Select.Root>
 
       {/* 일정 리스트 */}
-      <div style={{ height: 'calc(100vh - 300px)', overflow: 'auto' }}>
-        <Flex direction="column" gap="2" p="2">
-          {sortedSchedules.length === 0 ? (
-            <Card style={{ padding: '32px', textAlign: 'center' }}>
-              <Text color="gray" size="3">
-                {selectedFilter === 'completed' ? '완료된 일정이 없습니다.' : '예정된 일정이 없습니다.'}
-              </Text>
-            </Card>
-          ) : (
-            sortedSchedules.map((schedule) => (
-              <Card 
-                key={schedule.id} 
-                className="p-4 cursor-pointer transition-all duration-200"
-                onClick={() => handleScheduleClick(schedule)}
-              >
-                <Flex direction="column" gap="4">
-                  {/* 기본 정보 */}
-                  <Flex justify="between" align="center">
-                    <Flex direction="column" gap="1">
-                      <Text 
-                        size="3" 
-                        weight="medium"
-                      >
-                        {formatDateTime(schedule.date, schedule.time)}
-                      </Text>
-                      <Text size="2" color="gray">
-                        {schedule.address}
-                      </Text>
-                    </Flex>
-                    <Flex direction="column" gap="1" align="end">
-                      <Badge 
-                        color={getStatusColor(schedule.status) as 'blue' | 'green' | 'red' | 'gray'}
-                        variant="soft"
-                        size="1"
-                      >
-                        {getStatusText(schedule.status)}
-                      </Badge>
-                      {schedule.isRegular && schedule.regularSequence && (
-                        <Badge variant="soft" color="purple" size="1">
-                          {schedule.regularSequence.current}회차 (총 {schedule.regularSequence.total}회)
-                        </Badge>
-                      )}
-                    </Flex>
-                  </Flex>
+      {sortedSchedules.length === 0 ? (
+        <div className="p-8 text-center">
+          <Text color="gray" size="3">
+            {selectedFilter === 'completed' ? '완료된 일정이 없습니다.' : '예정된 일정이 없습니다.'}
+          </Text>
+        </div>
+      ) : (
+        (() => {
+          // 날짜별로 그룹화
+          const groupedSchedules = sortedSchedules.reduce((groups, schedule) => {
+            const date = schedule.date;
+            if (!groups[date]) {
+              groups[date] = [];
+            }
+            groups[date].push(schedule);
+            return groups;
+          }, {} as Record<string, Schedule[]>);
 
-                  <div className="w-full h-px bg-gray-200"></div>
-                  
-                  {/* 상세 정보 - 2열 레이아웃 */}
-                  <div className="grid grid-cols-2 gap-4">
-                    {/* 왼쪽 열 */}
-                    <div className="space-y-3">
-                      {/* 고객 정보 */}
-                      <div>
-                        <Flex justify="between" align="center">
-                          <Text size="2" weight="medium">고객</Text>
-                          <Text size="2" color="gray">{schedule.clientName}</Text>
-                        </Flex>
-                      </div>
-
-                      <div className="w-full h-px bg-gray-200"></div>
-
-                      {/* 서비스 타입 */}
-                      <div>
-                        <Flex justify="between" align="center">
-                          <Text size="2" weight="medium">서비스 타입</Text>
-                          <Badge color="blue">{schedule.serviceType}</Badge>
-                        </Flex>
-                      </div>
-                    </div>
-
-                    {/* 오른쪽 열 */}
-                    <div className="space-y-3">
-                      {/* 시급 */}
-                      <div>
-                        <Flex justify="between" align="center">
-                          <Text size="2" weight="medium">시급</Text>
-                          <Text size="2" color="gray">₩{schedule.hourlyRate.toLocaleString()}</Text>
-                        </Flex>
-                      </div>
-
-                      <div className="w-full h-px bg-gray-200"></div>
-
-                      {/* 총 금액 */}
-                      <div>
-                        <Flex justify="between" align="center">
-                          <Text size="2" weight="medium">총 금액</Text>
-                          <Text size="2" weight="medium" color="blue">
-                            ₩{(schedule.hourlyRate * schedule.duration).toLocaleString()}
-                          </Text>
-                        </Flex>
-                      </div>
-                    </div>
-                  </div>
-                </Flex>
-              </Card>
-            ))
-          )}
-        </Flex>
-      </div>
+          return Object.entries(groupedSchedules).map(([date, daySchedules]) => (
+            <div key={date}>
+              {/* 날짜 헤더 */}
+              <div className="mb-3 mt-4 first:mt-0">
+                <Heading size="4">{formatDate(date)}</Heading>
+              </div>
+              
+              {/* 해당 날짜의 일정 리스트 */}
+              <ScheduleList
+                schedules={daySchedules}
+                showStatus={true}
+                getStatusColor={getStatusColor}
+                getStatusText={getStatusText}
+                onClickSchedule={handleScheduleClick}
+              />
+            </div>
+          ));
+        })()
+      )}
     </Flex>
   );
 }

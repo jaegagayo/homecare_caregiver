@@ -5,17 +5,7 @@ import {
 } from "@radix-ui/themes";
 import { MapPin } from "lucide-react";
 import { formatTime } from "../../utils/formatters";
-
-interface Schedule {
-  id: string;
-  time: string;
-  clientName: string;
-  address: string;
-  serviceType: string;
-  status: 'upcoming' | 'completed' | 'cancelled';
-  isRegular?: boolean;
-  regularSequence?: { current: number; total: number };
-}
+import { Schedule } from "../../types";
 
 interface UpcomingScheduleCardProps {
   schedule: Schedule | null;
