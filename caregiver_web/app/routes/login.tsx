@@ -46,9 +46,6 @@ export default function Login() {
       {/* 헤더 */}
       <div className="bg-white border-b border-gray-200 px-4 py-3">
         <Flex align="center" gap="3">
-          <div className="w-8 h-8 bg-accent-2 rounded-full flex items-center justify-center">
-            <div className="w-4 h-4 text-accent">🏥</div>
-          </div>
           <Text size="4" weight="medium">케어기버</Text>
         </Flex>
       </div>
@@ -58,9 +55,6 @@ export default function Login() {
         <div className="w-full max-w-sm">
           <Flex direction="column" align="center" gap="8">
             <Flex direction="column" align="center" gap="4">
-              <div className="w-20 h-20 bg-accent-2 rounded-full flex items-center justify-center">
-                <div className="w-10 h-10 text-accent">🏥</div>
-              </div>
               <Heading size="6" className="text-center">
                 로그인
               </Heading>

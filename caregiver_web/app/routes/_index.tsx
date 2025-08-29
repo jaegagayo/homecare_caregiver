@@ -42,7 +42,11 @@ export default function Index() {
         <Flex direction="column" align="center" gap="6">
           <Flex direction="column" align="center" gap="4">
             <div className="w-20 h-20 bg-accent-3 rounded-full flex items-center justify-center shadow-lg">
-              <div className="w-10 h-10 text-accent-11">🏥</div>
+              <img 
+                src="/smart_care_match_logo.svg" 
+                alt="케어기버 로고" 
+                className="w-16 h-16"
+              />
             </div>
             <Heading size="6" className="text-center">
               케어기버
