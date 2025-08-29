@@ -8,7 +8,6 @@ import {
 import { 
   Home, 
   Calendar, 
-  Wallet, 
   Users,
   User,
   ArrowLeft
@@ -38,11 +37,8 @@ export default function MainLayout() {
     } else if (path.includes("/main/schedule")) {
       setCurrentTab(1);
       setCurrentPageTitle("일정");
-    } else if (path.includes("/main/earnings")) {
-      setCurrentTab(2);
-      setCurrentPageTitle("정산");
     } else if (path.includes("/main/matching")) {
-      setCurrentTab(3);
+      setCurrentTab(2);
       setCurrentPageTitle("매칭");
     } else if (path.includes("/main/work-conditions")) {
       setCurrentPageTitle("근무 조건 설정");
@@ -54,6 +50,12 @@ export default function MainLayout() {
       setCurrentPageTitle("마이페이지");
     } else if (path.includes("/main/profile-management")) {
       setCurrentPageTitle("프로필 관리");
+    } else if (path.includes("/main/review-management")) {
+      setCurrentPageTitle("내 리뷰 관리");
+    } else if (path.includes("/main/institution-settlement")) {
+      setCurrentPageTitle("기관 및 정산 내역");
+    } else if (path.includes("/main/customer-support")) {
+      setCurrentPageTitle("고객센터");
     }
   }, [navigate, location]);
 
@@ -68,8 +70,7 @@ export default function MainLayout() {
   const tabs = [
     { id: 0, label: "홈", icon: Home, path: "/main/home" },
     { id: 1, label: "일정", icon: Calendar, path: "/main/schedule" },
-    { id: 2, label: "정산", icon: Wallet, path: "/main/earnings" },
-    { id: 3, label: "매칭", icon: Users, path: "/main/matching" },
+    { id: 2, label: "매칭", icon: Users, path: "/main/matching" },
   ];
 
   const handleTabChange = (tabId: number) => {

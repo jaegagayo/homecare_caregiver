@@ -29,19 +29,16 @@ export default function MyPage() {
         navigate("/main/work-conditions");
         break;
       case "institution":
-        // TODO: 기관 및 정산 내역 페이지로 이동
-        console.log("기관 및 정산 내역");
+        navigate("/main/institution-settlement");
         break;
       case "reviews":
-        // TODO: 내 리뷰 관리 페이지로 이동
-        console.log("내 리뷰 관리");
+        navigate("/main/review-management");
         break;
       case "settings":
         navigate("/main/settings");
         break;
       case "support":
-        // TODO: 고객센터 페이지로 이동
-        console.log("고객센터");
+        navigate("/main/customer-support");
         break;
     }
   };
