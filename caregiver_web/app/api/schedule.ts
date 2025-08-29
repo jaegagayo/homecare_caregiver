@@ -1,65 +1,45 @@
 import { API_CONFIG, API_ENDPOINTS } from './config';
-import { getStoredCaregiverId } from './auth';
 
-export interface WorkMatch {
-  workMatchId: string;
-  caregiverId: string;
-  caregiverName: string;
-  workDate: string;
-  startTime: string;
-  endTime: string;
-  serviceType: string[];
-  address: string;
-  status: string;
-}
-
-export interface ServiceMatch {
+// 요양보호사 스케줄 응답 타입
+export interface CaregiverScheduleResponse {
   serviceMatchId: string;
-  caregiverId: string;
-  caregiverName: string;
   consumerName: string;
   serviceDate: string;
   startTime: string;
   endTime: string;
-  workType: string[];
+  serviceType: string;
   address: string;
-  hourlyWage: number;
   status: string;
-  notes: string | null;
+  isRegular?: boolean;
+  regularSequence?: { current: number; total: number };
 }
 
-export interface ScheduleRequest {
-  centerId: string;
-  year: number;
-  month: number;
-  day?: number; // 선택적 파라미터
+// 요양보호사 스케줄 상세 응답 타입
+export interface CaregiverScheduleDetailResponse {
+  serviceMatchId: string;
+  consumerName: string;
+  consumerPhone: string;
+  emergencyContact: string;
+  serviceDate: string;
+  startTime: string;
+  endTime: string;
+  serviceType: string;
+  address: string;
+  entryMethod: string;
+  careGrade: string;
+  weight: string;
+  hasDementia: boolean;
+  isBedridden: boolean;
+  cognitiveStatus: string;
+  cohabitationStatus: string;
+  specialNotes: string;
+  status: string;
 }
 
-export interface ScheduleResponse {
-  [key: string]: WorkMatch[];
-}
-
-export const getScheduleByDate = async (year: number, month: number, day?: number): Promise<WorkMatch[]> => {
+// 주간 스케줄 조회
+export const getWeeklySchedule = async (caregiverId: string): Promise<CaregiverScheduleResponse[]> => {
   try {
-    const centerId = getStoredCaregiverId();
-    if (!centerId) {
-      throw new Error('centerId not found in localStorage');
-    }
-
-    const params = new URLSearchParams({
-      centerId,
-      year: year.toString(),
-      month: (month + 1).toString(),
-    });
-
-    // day 파라미터가 제공된 경우 추가
-    if (day !== undefined) {
-      params.append('day', day.toString());
-    }
-
-    console.log(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.SCHEDULE.GET_BY_DATE}?${params}`);
-
-    const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.SCHEDULE.GET_BY_DATE}?${params}`, {
+    const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.SCHEDULE.WEEKLY}?caregiverId=${caregiverId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -67,31 +47,21 @@ export const getScheduleByDate = async (year: number, month: number, day?: numbe
     });
 
     if (!response.ok) {
-      throw new Error(`Schedule fetch failed: ${response.status}`);
+      throw new Error(`Weekly schedule fetch failed: ${response.status}`);
     }
 
-    const data: WorkMatch[] = await response.json();
+    const data: CaregiverScheduleResponse[] = await response.json();
     return data;
   } catch (error) {
-    console.error('Schedule fetch error:', error);
+    console.error('Weekly schedule fetch error:', error);
     throw error;
   }
 };
 
-// 특정 일자의 스케줄만 가져오는 함수
-export const getScheduleByDay = async (year: number, month: number, day: number): Promise<WorkMatch[]> => {
-  return getScheduleByDate(year, month, day);
-};
-
-// 특정 요양보호사의 스케줄을 가져오는 함수
-export const getCaregiverSchedule = async (caregiverId: string): Promise<ServiceMatch[]> => {
+// 오늘 스케줄 조회
+export const getTodaySchedule = async (caregiverId: string): Promise<CaregiverScheduleResponse[]> => {
   try {
-    const centerId = getStoredCaregiverId();
-    if (!centerId) {
-      throw new Error('centerId not found in localStorage');
-    }
-
-    const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.SCHEDULE.GET_BY_CAREGIVER.replace('{caregiverId}', caregiverId.toString())}`, {
+    const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.SCHEDULE.TODAY}?caregiverId=${caregiverId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -99,13 +69,57 @@ export const getCaregiverSchedule = async (caregiverId: string): Promise<Service
     });
 
     if (!response.ok) {
-      throw new Error(`Caregiver schedule fetch failed: ${response.status}`);
+      throw new Error(`Today schedule fetch failed: ${response.status}`);
     }
 
-    const data: ServiceMatch[] = await response.json();
+    const data: CaregiverScheduleResponse[] = await response.json();
     return data;
   } catch (error) {
-    console.error('Caregiver schedule fetch error:', error);
+    console.error('Today schedule fetch error:', error);
+    throw error;
+  }
+};
+
+// 내일 스케줄 조회
+export const getTomorrowSchedule = async (caregiverId: string): Promise<CaregiverScheduleResponse[]> => {
+  try {
+    const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.SCHEDULE.TOMORROW}?caregiverId=${caregiverId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Tomorrow schedule fetch failed: ${response.status}`);
+    }
+
+    const data: CaregiverScheduleResponse[] = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Tomorrow schedule fetch error:', error);
+    throw error;
+  }
+};
+
+// 스케줄 상세 조회
+export const getScheduleDetail = async (scheduleId: string): Promise<CaregiverScheduleDetailResponse> => {
+  try {
+    const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.SCHEDULE.DETAIL.replace('{id}', scheduleId)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Schedule detail fetch failed: ${response.status}`);
+    }
+
+    const data: CaregiverScheduleDetailResponse = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Schedule detail fetch error:', error);
     throw error;
   }
 }; 

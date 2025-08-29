@@ -1,15 +1,6 @@
 import { API_CONFIG, API_ENDPOINTS } from './config';
-import { getStoredCaregiverId } from './auth';
 
-export interface CaregiverApi {
-  caregiverId: string;
-  name: string;
-  phone: string;
-  serviceTypes: string[];
-  status: string;
-}
-
-// 인사카드 조회를 위한 API 응답 타입
+// 요양보호사 정보 조회를 위한 API 응답 타입
 export interface CaregiverProfileApi {
   caregiverName: string;
   email: string;
@@ -28,51 +19,21 @@ export interface CaregiverCertificationApi {
   trainStatus: boolean;
 }
 
-// 매칭 정보 조회를 위한 API 응답 타입
-export interface AssignApi {
-  consumerName: string;
-  caregiverName: string;
-  serviceDate: string;
-  startTime: string;
-  endTime: string;
-  serviceType: string;
-  status: string;
+// 센터 정보 조회를 위한 API 응답 타입
+export interface CaregiverCenterApi {
+  caregiverCenterId: string;
+  centerName: string;
+  centerPhone: string;
 }
 
-export const getCaregivers = async (): Promise<CaregiverApi[]> => {
-  try {
-    const centerId = getStoredCaregiverId();
-    if (!centerId) {
-      throw new Error('centerId not found in localStorage');
-    }
-
-    const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.CAREGIVER.GET_ALL.replace('{centerId}', centerId)}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Caregiver fetch failed: ${response.status}`);
-    }
-
-    const data: CaregiverApi[] = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Caregiver fetch error:', error);
-    throw error;
-  }
-};
-
-// 인사카드 조회 API 함수
+// 요양보호사 프로필 조회 API 함수
 export const getCaregiverProfile = async (caregiverId: string): Promise<CaregiverProfileApi> => {
   try {
     const params = new URLSearchParams({
       caregiverId: caregiverId,
     });
 
-    const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.CAREGIVER.GET_PROFILE}?${params}`, {
+    const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.CAREGIVER.PROFILE}?${params}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -91,10 +52,10 @@ export const getCaregiverProfile = async (caregiverId: string): Promise<Caregive
   }
 };
 
-// 자격증 정보 조회 API 함수
-export const getCaregiverCertification = async (caregiverId: string): Promise<CaregiverCertificationApi> => {
+// 요양보호사 소속 센터 목록 조회 API 함수
+export const getMyCenters = async (caregiverId: string): Promise<CaregiverCenterApi[]> => {
   try {
-    const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.CAREGIVER.GET_CERTIFICATION.replace('{caregiverId}', caregiverId)}`, {
+    const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.CAREGIVER.CENTERS}?caregiverId=${caregiverId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -102,40 +63,37 @@ export const getCaregiverCertification = async (caregiverId: string): Promise<Ca
     });
 
     if (!response.ok) {
-      throw new Error(`Caregiver certification fetch failed: ${response.status}`);
+      throw new Error(`Centers fetch failed: ${response.status}`);
     }
 
-    const data: CaregiverCertificationApi = await response.json();
+    const data: CaregiverCenterApi[] = await response.json();
     return data;
   } catch (error) {
-    console.error('Caregiver certification fetch error:', error);
+    console.error('Centers fetch error:', error);
     throw error;
   }
 };
 
-// 매칭 정보 조회 API 함수
-export const getAssignments = async (): Promise<AssignApi[]> => {
+// 요양보호사 센터 선택 API 함수
+export const chooseCenter = async (request: {
+  caregiverCenterId: string;
+  serviceMatchId: string;
+  distanceLog: string;
+}): Promise<void> => {
   try {
-    const centerId = getStoredCaregiverId();
-    if (!centerId) {
-      throw new Error('centerId not found in localStorage');
-    }
-
-    const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.ASSIGN.GET_ALL.replace('{centerId}', centerId)}`, {
-      method: 'GET',
+    const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.CAREGIVER.CHOOSE_CENTER}`, {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify(request),
     });
 
     if (!response.ok) {
-      throw new Error(`Assignments fetch failed: ${response.status}`);
+      throw new Error(`Choose center failed: ${response.status}`);
     }
-
-    const data: AssignApi[] = await response.json();
-    return data;
   } catch (error) {
-    console.error('Assignments fetch error:', error);
+    console.error('Choose center error:', error);
     throw error;
   }
 }; 

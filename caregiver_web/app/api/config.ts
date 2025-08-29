@@ -5,21 +5,31 @@ export const API_CONFIG = {
   RETRY_ATTEMPTS: 3, // 재시도 횟수
 } as const;
 
-// API 엔드포인트 정의
+// API 엔드포인트 정의 - 요양보호사용
 export const API_ENDPOINTS = {
   AUTH: {
-    LOGIN: '/center/login',
-  },
-  SCHEDULE: {
-    GET_BY_DATE: '/center/schedule/date',
-    GET_BY_CAREGIVER: '/center/schedule/{caregiverId}',
+    LOGIN: '/caregiver/login',
+    SIGNUP: '/caregiver/register',
+    VERIFIED_STATUS: '/caregiver/verified',
   },
   CAREGIVER: {
-    GET_ALL: '/center/{centerId}/caregiver',
-    GET_PROFILE: '/center/profile',
-    GET_CERTIFICATION: '/center/{caregiverId}/certification',
+    PROFILE: '/caregiver/profile',
+    CENTERS: '/caregiver/center',
+    CHOOSE_CENTER: '/caregiver/center',
   },
-  ASSIGN: {
-    GET_ALL: '/center/{centerId}/assign',
+  SCHEDULE: {
+    WEEKLY: '/caregiver/schedule',
+    DETAIL: '/caregiver/schedule/{id}',
+    TODAY: '/caregiver/home/today-schedule',
+    TOMORROW: '/caregiver/home/next-schedule',
+  },
+  REVIEW: {
+    LIST: '/caregiver/review',
+    DETAIL: '/caregiver/review/{reviewId}',
+  },
+  RECURRING_OFFER: {
+    SUMMARY: '/recurringOffer/caregiver',
+    APPROVE: '/recurringOffer/caregiver/approve',
+    REJECT: '/recurringOffer/caregiver/reject',
   },
 } as const; 
