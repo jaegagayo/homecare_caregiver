@@ -1,9 +1,9 @@
 import { Flex, Text, Card, Button } from '@radix-ui/themes';
 import { Phone, User, Shield, Contact } from 'lucide-react';
-import { ScheduleDetail } from '../../../types';
+import { CaregiverScheduleDetailResponse } from '../../../types';
 
 interface ContactInfoCardProps {
-  schedule: ScheduleDetail;
+  schedule: CaregiverScheduleDetailResponse;
 }
 
 export default function ContactInfoCard({ schedule }: ContactInfoCardProps) {
@@ -37,10 +37,10 @@ export default function ContactInfoCard({ schedule }: ContactInfoCardProps) {
           <User size={16} style={{ color: 'var(--accent-9)' }} />
           <Flex direction="column" gap="1" style={{ flex: 1 }}>
             <Text size="2" color="gray">이용자</Text>
-            <Text size="3" weight="medium">{schedule.contactNumber}</Text>
+            <Text size="3" weight="medium">{schedule.consumerPhone}</Text>
           </Flex>
           <div
-            onClick={() => handleCall(schedule.contactNumber)}
+            onClick={() => handleCall(schedule.consumerPhone)}
             style={{ 
               width: '40px', 
               height: '40px', 
@@ -69,11 +69,11 @@ export default function ContactInfoCard({ schedule }: ContactInfoCardProps) {
         <Flex gap="3" align="center">
           <Shield size={16} style={{ color: 'var(--accent-9)' }} />
           <Flex direction="column" gap="1" style={{ flex: 1 }}>
-            <Text size="2" color="gray">보호자 (아들)</Text>
-            <Text size="3" weight="medium">{schedule.emergencyContact}</Text>
+            <Text size="2" color="gray">보호자</Text>
+            <Text size="3" weight="medium">{schedule.guardianPhone}</Text>
           </Flex>
           <div
-            onClick={() => handleCall(schedule.emergencyContact)}
+            onClick={() => handleCall(schedule.guardianPhone)}
             style={{ 
               width: '40px', 
               height: '40px', 

@@ -11,24 +11,24 @@ export interface CaregiverScheduleResponse {
   requestStatus: string;
 }
 
-// 요양보호사 스케줄 상세 응답 타입
+// 요양보호사 스케줄 상세 응답 타입 - 백엔드와 정확히 일치
 export interface CaregiverScheduleDetailResponse {
-  serviceMatchId: string;
   consumerName: string;
   consumerPhone: string;
-  emergencyContact: string;
+  guardianName: string;
+  guardianPhone: string;
   serviceDate: string;
-  startTime: string;
-  endTime: string;
-  serviceType: string;
-  address: string;
-  entryMethod: string;
-  careGrade: string;
-  weight: string;
-  hasDementia: boolean;
-  isBedridden: boolean;
+  serviceStartTime: string;
+  serviceEndTime: string;
+  duration: number;
+  careGrade: number;
+  disease: string;
+  weight: number;
   cognitiveStatus: string;
-  cohabitationStatus: string;
-  specialNotes: string;
-  status: string;
+  livingSituation: string;
+  serviceAddress: string;
+  entranceType: string;
+  additionalInformation: string;
+  serviceType: string;
+  matchStatus: string;
 }

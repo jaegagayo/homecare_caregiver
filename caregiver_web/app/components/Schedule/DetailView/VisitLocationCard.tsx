@@ -1,9 +1,9 @@
 import { Flex, Text, Card, Button } from '@radix-ui/themes';
 import { MapPin, Navigation, Map } from 'lucide-react';
-import { ScheduleDetail } from '../../../types';
+import { CaregiverScheduleDetailResponse } from '../../../types';
 
 interface VisitLocationCardProps {
-  schedule: ScheduleDetail;
+  schedule: CaregiverScheduleDetailResponse;
 }
 
 export default function VisitLocationCard({ schedule }: VisitLocationCardProps) {
@@ -41,7 +41,7 @@ export default function VisitLocationCard({ schedule }: VisitLocationCardProps) 
         {/* 주소 섹션 */}
         <div className="space-y-2">
           <Text size="2" color="gray" className='block mb-1'>주소</Text>
-          <Text size="3" weight="medium">{schedule.visitAddress}</Text>
+          <Text size="3" weight="medium">{schedule.serviceAddress}</Text>
         </div>
 
         <div className="w-full h-px bg-gray-200"></div>
@@ -49,7 +49,7 @@ export default function VisitLocationCard({ schedule }: VisitLocationCardProps) 
         {/* 출입 방법 섹션 */}
         <div className="space-y-2">
           <Text size="2" color="gray" className='block mb-1'>출입 방법</Text>
-          <Text size="3" weight="medium">{schedule.entryMethod}</Text>
+          <Text size="3" weight="medium">{schedule.entranceType}</Text>
         </div>
 
         <div className="w-full h-px bg-gray-200"></div>

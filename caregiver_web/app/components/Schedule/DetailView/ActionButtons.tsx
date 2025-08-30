@@ -1,9 +1,9 @@
 import { useNavigate } from '@remix-run/react';
 import { Flex, Button } from '@radix-ui/themes';
-import { ScheduleDetail } from '../../../types';
+import { CaregiverScheduleDetailResponse } from '../../../types';
 
 interface ActionButtonsProps {
-  schedule: ScheduleDetail;
+  schedule: CaregiverScheduleDetailResponse;
   scheduleId: string;
 }
 
@@ -28,12 +28,7 @@ export default function ActionButtons({ schedule, scheduleId }: ActionButtonsPro
 
   return (
     <Flex gap="3" justify="center">
-      {schedule.status === 'institution_not_selected' && (
-        <Button onClick={handleSelectInstitution} className="flex-1">
-          기관 선택
-        </Button>
-      )}
-      {schedule.status === 'scheduled' && !schedule.isRegular && (
+      {schedule.matchStatus === 'CONFIRMED' && (
         <>
           <Button variant="outline" onClick={() => navigate('/main/schedule')} className="flex-1">
             일정 목록으로 돌아가기
@@ -43,17 +38,7 @@ export default function ActionButtons({ schedule, scheduleId }: ActionButtonsPro
           </Button>
         </>
       )}
-      {schedule.status === 'scheduled' && schedule.isRegular && (
-        <>
-          <Button variant="outline" onClick={() => navigate('/main/schedule')} className="flex-1">
-            일정 목록으로 돌아가기
-          </Button>
-          <Button variant="soft" color="orange" onClick={handleSkip} className="flex-1">
-            이번 회차 건너뛰기
-          </Button>
-        </>
-      )}
-      {schedule.status === 'completed' && (
+      {schedule.matchStatus === 'COMPLETED' && (
         <Button variant="outline" onClick={() => navigate('/main/schedule')} className="flex-1">
           일정 목록으로 돌아가기
         </Button>

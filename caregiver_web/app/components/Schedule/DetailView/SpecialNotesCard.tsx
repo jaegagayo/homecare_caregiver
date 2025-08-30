@@ -1,9 +1,9 @@
 import { Text, Card, Flex } from '@radix-ui/themes';
 import { MessageSquare } from 'lucide-react';
-import { ScheduleDetail } from '../../../types';
+import { CaregiverScheduleDetailResponse } from '../../../types';
 
 interface SpecialNotesCardProps {
-  schedule: ScheduleDetail;
+  schedule: CaregiverScheduleDetailResponse;
 }
 
 export default function SpecialNotesCard({ schedule }: SpecialNotesCardProps) {
@@ -37,7 +37,7 @@ export default function SpecialNotesCard({ schedule }: SpecialNotesCardProps) {
           }}
         >
           <Text size="2" className="whitespace-pre-wrap" style={{ lineHeight: '1.5' }}>
-            {schedule.specialNotes}
+            {schedule.additionalInformation}
           </Text>
         </div>
       </Flex>

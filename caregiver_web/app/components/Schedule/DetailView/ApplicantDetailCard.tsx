@@ -1,9 +1,9 @@
 import { Flex, Text, Card } from '@radix-ui/themes';
 import { Plus } from 'lucide-react';
-import { ScheduleDetail } from '../../../types';
+import { CaregiverScheduleDetailResponse } from '../../../types';
 
 interface ApplicantDetailCardProps {
-  schedule: ScheduleDetail;
+  schedule: CaregiverScheduleDetailResponse;
 }
 
 export default function ApplicantDetailCard({ schedule }: ApplicantDetailCardProps) {
@@ -42,7 +42,7 @@ export default function ApplicantDetailCard({ schedule }: ApplicantDetailCardPro
               장기요양등급
             </Text>
             <Text size="3" weight="bold">
-              {schedule.careGrade}
+              {schedule.careGrade}등급
             </Text>
           </div>
 
@@ -58,11 +58,11 @@ export default function ApplicantDetailCard({ schedule }: ApplicantDetailCardPro
               체중
             </Text>
             <Text size="3" weight="bold">
-              {schedule.weight}
+              {schedule.weight}kg
             </Text>
           </div>
 
-          {/* 치매 */}
+          {/* 질병 */}
           <div 
             style={{
               backgroundColor: 'var(--gray-3)',
@@ -71,50 +71,36 @@ export default function ApplicantDetailCard({ schedule }: ApplicantDetailCardPro
             }}
           >
             <Text size="1" color="gray" style={{ marginBottom: '4px', display: 'block' }}>
-              치매
-            </Text>
-            <Text 
-              size="3" 
-              weight="bold"
-              style={{ 
-                color: schedule.hasDementia ? 'var(--red-9)' : 'inherit' 
-              }}
-            >
-              {schedule.hasDementia ? '있음' : '없음'}
-            </Text>
-          </div>
-
-          {/* 와상상태 */}
-          <div 
-            style={{
-              backgroundColor: 'var(--gray-3)',
-              borderRadius: '8px',
-              padding: '12px'
-            }}
-          >
-            <Text size="1" color="gray" style={{ marginBottom: '4px', display: 'block' }}>
-              와상상태
+              질병
             </Text>
             <Text size="3" weight="bold">
-              {schedule.isBedridden ? '예' : '아니오'}
+              {schedule.disease}
+            </Text>
+          </div>
+
+          {/* 인지상태 */}
+          <div 
+            style={{
+              backgroundColor: 'var(--gray-3)',
+              borderRadius: '8px',
+              padding: '12px'
+            }}
+          >
+            <Text size="1" color="gray" style={{ marginBottom: '4px', display: 'block' }}>
+              인지상태
+            </Text>
+            <Text size="3" weight="bold">
+              {schedule.cognitiveStatus}
             </Text>
           </div>
         </div>
 
         <div className="w-full h-px bg-gray-200"></div>
 
-        {/* 인지상태 */}
+        {/* 동거상황 */}
         <div className="space-y-2">
-          <Text size="2" color="gray" className='block mb-1'>인지상태</Text>
-          <Text size="3" weight="medium">{schedule.cognitiveStatus}</Text>
-        </div>
-
-        <div className="w-full h-px bg-gray-200"></div>
-
-        {/* 동거인 */}
-        <div className="space-y-2">
-          <Text size="2" color="gray" className='block mb-1'>동거인</Text>
-          <Text size="3" weight="medium">{schedule.cohabitationStatus}</Text>
+          <Text size="2" color="gray" className='block mb-1'>동거상황</Text>
+          <Text size="3" weight="medium">{schedule.livingSituation}</Text>
         </div>
       </Flex>
     </Card>
