@@ -1,19 +1,17 @@
 export const getStatusColor = (status: string) => {
   switch (status) {
-    case 'pending_approval': return 'orange';
-    case 'institution_not_selected': return 'red';
-    case 'scheduled': return 'blue';
-    case 'completed': return 'green';
+    case 'CONFIRMED': return 'blue';
+    case 'COMPLETED': return 'green';
+    case 'CANCELLED': return 'red';
     default: return 'gray';
   }
 };
 
 export const getStatusText = (status: string) => {
   switch (status) {
-    case 'pending_approval': return '승인 대기';
-    case 'institution_not_selected': return '기관 미선택';
-    case 'scheduled': return '예정';
-    case 'completed': return '완료';
+    case 'CONFIRMED': return '예정';
+    case 'COMPLETED': return '완료';
+    case 'CANCELLED': return '취소';
     default: return '알 수 없음';
   }
 };

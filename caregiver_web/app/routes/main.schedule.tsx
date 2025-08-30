@@ -8,23 +8,11 @@ import ViewToggle from "../components/Schedule/ViewToggle";
 import ScheduleListView from "../components/Schedule/ListView/ScheduleListView";
 import ScheduleHeader from "../components/Schedule/CalendarView/ScheduleHeader";
 import ScheduleGridBody from "../components/Schedule/CalendarView/ScheduleGridBody";
-
-interface Schedule {
-  id: string;
-  date: string;
-  time: string;
-  clientName: string;
-  address: string;
-  serviceType: string;
-  status: 'upcoming' | 'completed' | 'cancelled';
-  duration: number; // 시간 단위
-  hourlyRate: number;
-  isRegular?: boolean;
-  regularSequence?: { current: number; total: number };
-}
+import { getWeeklySchedule } from "../api/schedule";
+import { CaregiverScheduleResponse } from "../types";
 
 export default function SchedulePage() {
-  const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [schedules, setSchedules] = useState<CaregiverScheduleResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [currentView, setCurrentView] = useState<'calendar' | 'list'>('calendar');
@@ -67,193 +55,29 @@ export default function SchedulePage() {
   };
 
   useEffect(() => {
-    // 더미 데이터 로드
+    // 실제 API 데이터 로드
     const loadData = async () => {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setSchedules([
-        // 8월 28일 (목요일) - 내일
-        {
-          id: "1",
-          date: "2025-08-28",
-          time: "09:00 - 11:00",
-          clientName: "정미영",
-          address: "서울시 강서구 화곡동",
-          serviceType: "방문요양",
-          status: "scheduled",
-          duration: 2,
-          hourlyRate: 15000
-        },
-        {
-          id: "2",
-          date: "2025-08-28",
-          time: "14:00 - 16:00",
-          clientName: "김철수",
-          address: "서울시 영등포구 여의도동",
-          serviceType: "방문요양",
-          status: "scheduled",
-          duration: 2,
-          hourlyRate: 18000,
-          isRegular: true,
-          regularSequence: { current: 3, total: 5 }
-        },
-        {
-          id: "3",
-          date: "2025-08-28",
-          time: "18:00 - 20:00",
-          clientName: "박영희",
-          address: "서울시 성동구 성수동",
-          serviceType: "방문요양",
-          status: "scheduled",
-          duration: 2,
-          hourlyRate: 16000,
-          isRegular: true,
-          regularSequence: { current: 1, total: 3 }
-        },
+      try {
+        setIsLoading(true);
         
-        // 8월 29일 (금요일)
-        {
-          id: "4",
-          date: "2025-08-29",
-          time: "10:00 - 12:00",
-          clientName: "이미라",
-          address: "서울시 광진구 구의동",
-          serviceType: "방문요양",
-          status: "scheduled",
-          duration: 2,
-          hourlyRate: 15000
-        },
-        {
-          id: "5",
-          date: "2025-08-29",
-          time: "15:00 - 17:00",
-          clientName: "최동욱",
-          address: "서울시 동대문구 신설동",
-          serviceType: "방문요양",
-          status: "scheduled",
-          duration: 2,
-          hourlyRate: 17000
-        },
+        // TODO: 실제 caregiverId를 사용해야 함 (현재는 임시로 "1" 사용)
+        const caregiverId = "1";
         
-        // 8월 30일 (토요일)
-        {
-          id: "6",
-          date: "2025-08-30",
-          time: "08:00 - 10:00",
-          clientName: "한지영",
-          address: "서울시 중구 명동",
-          serviceType: "방문요양",
-          status: "scheduled",
-          duration: 2,
-          hourlyRate: 16000
-        },
-        {
-          id: "7",
-          date: "2025-08-30",
-          time: "13:00 - 15:00",
-          clientName: "송민호",
-          address: "서울시 용산구 이태원동",
-          serviceType: "방문요양",
-          status: "scheduled",
-          duration: 2,
-          hourlyRate: 15000
-        },
+        // 주간 일정 조회 - 백엔드 데이터를 그대로 사용
+        const apiData = await getWeeklySchedule(caregiverId);
         
-        // 8월 31일 (일요일)
-        {
-          id: "8",
-          date: "2025-08-31",
-          time: "11:00 - 13:00",
-          clientName: "윤서연",
-          address: "서울시 서대문구 신촌동",
-          serviceType: "방문요양",
-          status: "scheduled",
-          duration: 2,
-          hourlyRate: 15000
-        },
-        {
-          id: "9",
-          date: "2025-08-31",
-          time: "16:00 - 18:00",
-          clientName: "임태현",
-          address: "서울시 종로구 종로",
-          serviceType: "방문요양",
-          status: "scheduled",
-          duration: 2,
-          hourlyRate: 17000
-        },
-        
-        // 9월 1일 (월요일)
-        {
-          id: "10",
-          date: "2025-09-01",
-          time: "09:00 - 11:00",
-          clientName: "강미영",
-          address: "서울시 노원구 공릉동",
-          serviceType: "방문요양",
-          status: "scheduled",
-          duration: 2,
-          hourlyRate: 15000
-        },
-        
-        // 9월 2일 (화요일)
-        {
-          id: "11",
-          date: "2025-09-02",
-          time: "09:00 - 11:00",
-          clientName: "김영희",
-          address: "서울시 강남구 역삼동",
-          serviceType: "방문요양",
-          status: "scheduled",
-          duration: 2,
-          hourlyRate: 15000
-        },
-        {
-          id: "12",
-          date: "2025-09-02",
-          time: "14:00 - 16:00",
-          clientName: "박철수",
-          address: "서울시 서초구 서초동",
-          serviceType: "방문요양",
-          status: "scheduled",
-          duration: 2,
-          hourlyRate: 16000
-        },
-        
-        // 9월 3일 (수요일)
-        {
-          id: "13",
-          date: "2025-09-03",
-          time: "08:00 - 10:00",
-          clientName: "이순자",
-          address: "서울시 마포구 합정동",
-          serviceType: "방문요양",
-          status: "scheduled",
-          duration: 2,
-          hourlyRate: 15000
-        },
-        {
-          id: "14",
-          date: "2025-09-03",
-          time: "13:00 - 15:00",
-          clientName: "최민수",
-          address: "서울시 송파구 문정동",
-          serviceType: "방문요양",
-          status: "scheduled",
-          duration: 2,
-          hourlyRate: 17000
-        }
-      ]);
-
-      setIsLoading(false);
+        setSchedules(apiData);
+      } catch (error) {
+        console.error('일정 데이터 로드 실패:', error);
+        // 에러 발생 시 빈 배열로 설정
+        setSchedules([]);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadData();
   }, []);
-
-
-
-
 
   if (isLoading) {
     return (

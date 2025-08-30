@@ -3,23 +3,10 @@ import { useNavigate } from '@remix-run/react';
 import { Flex, Select, Text, Heading } from '@radix-ui/themes';
 import { ScheduleList } from '../../Common';
 import { getStatusColor, getStatusText } from '../../../utils/scheduleStatus';
-
-interface Schedule {
-  id: string;
-  date: string;
-  time: string;
-  clientName: string;
-  address: string;
-  serviceType: string;
-  status: 'scheduled' | 'completed' | 'cancelled';
-  duration: number;
-  hourlyRate: number;
-  isRegular?: boolean;
-  regularSequence?: { current: number; total: number };
-}
+import { CaregiverScheduleResponse } from '../../../types';
 
 interface ScheduleListViewProps {
-  schedules: Schedule[];
+  schedules: CaregiverScheduleResponse[];
 }
 
 export default function ScheduleListView({ schedules }: ScheduleListViewProps) {
@@ -33,16 +20,16 @@ export default function ScheduleListView({ schedules }: ScheduleListViewProps) {
     switch (selectedFilter) {
       case 'scheduled-all':
         return schedules.filter(s => {
-          const scheduleDateTime = new Date(`${s.date} ${s.time.split(' - ')[0]}`);
-          return (s.status === 'scheduled') && scheduleDateTime > now;
+          const scheduleDateTime = new Date(`${s.serviceDate} ${s.serviceStartTime}`);
+          return (s.matchStatus === 'CONFIRMED') && scheduleDateTime > now;
         });
       case 'scheduled-regular':
         return schedules.filter(s => {
-          const scheduleDateTime = new Date(`${s.date} ${s.time.split(' - ')[0]}`);
-          return (s.status === 'scheduled') && s.isRegular && scheduleDateTime > now;
+          const scheduleDateTime = new Date(`${s.serviceDate} ${s.serviceStartTime}`);
+          return (s.matchStatus === 'CONFIRMED') && (s.requestStatus === 'RECURRING') && scheduleDateTime > now;
         });
       case 'completed':
-        return schedules.filter(s => s.status === 'completed');
+        return schedules.filter(s => s.matchStatus === 'COMPLETED');
       default:
         return schedules;
     }
@@ -54,14 +41,12 @@ export default function ScheduleListView({ schedules }: ScheduleListViewProps) {
   const sortedSchedules = [...filteredSchedules].sort((a, b) => {
     if (selectedFilter === 'completed') {
       // 완료된 일정은 최근 순 (역순)
-      return new Date(b.date).getTime() - new Date(a.date).getTime();
+      return new Date(b.serviceDate).getTime() - new Date(a.serviceDate).getTime();
     } else {
       // 예정된 일정은 다가오는 순
-      return new Date(a.date).getTime() - new Date(b.date).getTime();
+      return new Date(a.serviceDate).getTime() - new Date(b.serviceDate).getTime();
     }
   });
-
-
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -100,19 +85,19 @@ export default function ScheduleListView({ schedules }: ScheduleListViewProps) {
             <Select.Item value="scheduled-all">
               예정-전체 ({schedules.filter(s => {
                 const now = new Date();
-                const scheduleDateTime = new Date(`${s.date} ${s.time.split(' - ')[0]}`);
-                return (s.status === 'scheduled') && scheduleDateTime > now;
+                const scheduleDateTime = new Date(`${s.serviceDate} ${s.serviceStartTime}`);
+                return (s.matchStatus === 'CONFIRMED') && scheduleDateTime > now;
               }).length})
             </Select.Item>
             <Select.Item value="scheduled-regular">
               예정-정기 ({schedules.filter(s => {
                 const now = new Date();
-                const scheduleDateTime = new Date(`${s.date} ${s.time.split(' - ')[0]}`);
-                return (s.status === 'scheduled') && s.isRegular && scheduleDateTime > now;
+                const scheduleDateTime = new Date(`${s.serviceDate} ${s.serviceStartTime}`);
+                return (s.matchStatus === 'CONFIRMED') && (s.requestStatus === 'RECURRING') && scheduleDateTime > now;
               }).length})
             </Select.Item>
             <Select.Item value="completed">
-              완료 ({schedules.filter(s => s.status === 'completed').length})
+              완료 ({schedules.filter(s => s.matchStatus === 'COMPLETED').length})
             </Select.Item>
           </Select.Content>
         </Select.Root>
@@ -138,13 +123,13 @@ export default function ScheduleListView({ schedules }: ScheduleListViewProps) {
           (() => {
             // 날짜별로 그룹화
             const groupedSchedules = sortedSchedules.reduce((groups, schedule) => {
-              const date = schedule.date;
+              const date = schedule.serviceDate;
               if (!groups[date]) {
                 groups[date] = [];
               }
               groups[date].push(schedule);
               return groups;
-            }, {} as Record<string, Schedule[]>);
+            }, {} as Record<string, CaregiverScheduleResponse[]>);
 
             return Object.entries(groupedSchedules).map(([date, daySchedules]) => (
               <div key={date}>

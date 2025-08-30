@@ -1,23 +1,10 @@
 import { Flex, Text, Button } from '@radix-ui/themes';
-
-interface Schedule {
-  id: string;
-  date: string;
-  time: string;
-  clientName: string;
-  address: string;
-  serviceType: string;
-  status: 'upcoming' | 'completed' | 'cancelled';
-  duration: number;
-  hourlyRate: number;
-  isRegular?: boolean;
-  regularSequence?: { current: number; total: number };
-}
+import { CaregiverScheduleResponse } from '../../../types';
 
 interface ScheduleHeaderProps {
   currentWeek: Date;
   currentDayIndex: number;
-  schedules: Schedule[];
+  schedules: CaregiverScheduleResponse[];
   onNavigateWeek: (direction: 'prev' | 'next' | 'today') => void;
   onNavigateDays: (direction: 'prev' | 'next' | number) => void;
 }
@@ -58,16 +45,22 @@ export default function ScheduleHeader({ currentWeek, currentDayIndex, schedules
 
   // 현재 주의 일정들만 필터링
   const currentWeekSchedules = schedules.filter(schedule => {
-    const scheduleDate = new Date(schedule.date);
+    const scheduleDate = new Date(schedule.serviceDate);
     return scheduleDate >= weekStart && scheduleDate <= weekEnd;
   });
 
   // 통계 계산
-  const upcomingCount = currentWeekSchedules.filter(s => s.status === 'upcoming').length;
-  const completedCount = currentWeekSchedules.filter(s => s.status === 'completed').length;
+  const upcomingCount = currentWeekSchedules.filter(s => s.matchStatus === 'CONFIRMED').length;
+  const completedCount = currentWeekSchedules.filter(s => s.matchStatus === 'COMPLETED').length;
   const totalEarnings = currentWeekSchedules
-    .filter(s => s.status === 'completed')
-    .reduce((total, s) => total + (s.duration * s.hourlyRate), 0);
+    .filter(s => s.matchStatus === 'COMPLETED')
+    .reduce((total, s) => {
+      // 시간 계산
+      const startTime = new Date(s.serviceStartTime);
+      const endTime = new Date(s.serviceEndTime);
+      const durationHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+      return total + (durationHours * 15000); // 기본 시급 15,000원
+    }, 0);
 
   return (
     <Flex direction="column" gap="3" style={{ flexShrink: 0, marginBottom: '16px', paddingTop: '4px' }}>

@@ -32,6 +32,3 @@ export interface CaregiverScheduleDetailResponse {
   specialNotes: string;
   status: string;
 }
-
-
-
