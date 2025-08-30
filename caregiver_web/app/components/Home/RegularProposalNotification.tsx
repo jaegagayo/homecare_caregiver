@@ -7,52 +7,52 @@ import {
   Button
 } from "@radix-ui/themes";
 import { Info, Calendar, User, ChevronLeft, ChevronRight, Clock } from "lucide-react";
-
-interface RegularProposal {
-  id: string;
-  applicantName: string;
-  period: string;
-  totalSessions: number;
-  dayOfWeek: string;
-  timeSlot: string;
-  status: 'pending' | 'approved' | 'rejected';
-}
+import { RecurringOfferSummaryResponse } from "../../types";
 
 interface RegularProposalNotificationProps {
-  proposals: RegularProposal[];
+  proposals: RecurringOfferSummaryResponse[];
 }
 
 export default function RegularProposalNotification({ proposals }: RegularProposalNotificationProps) {
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // 승인 대기 중인 제안만 필터링
-  const pendingProposals = proposals.filter(proposal => proposal.status === 'pending');
+  // 모든 제안을 표시 (백엔드에서 이미 필터링된 데이터)
+  const displayProposals = proposals;
 
-  // 승인 대기 제안이 없으면 카드 미노출
-  if (pendingProposals.length === 0) {
+  // 제안이 없으면 카드 미노출
+  if (displayProposals.length === 0) {
     return null;
   }
 
-  const handleViewDetails = (proposal: RegularProposal) => {
-    navigate(`/main/regular-proposal-detail?id=${proposal.id}`);
+  const handleViewDetails = (proposal: RecurringOfferSummaryResponse) => {
+    navigate(`/main/regular-proposal-detail?id=${proposal.recurringOfferId}`);
   };
 
   const handlePrevious = () => {
-    setCurrentIndex(prev => prev > 0 ? prev - 1 : pendingProposals.length - 1);
+    setCurrentIndex(prev => prev > 0 ? prev - 1 : displayProposals.length - 1);
   };
 
   const handleNext = () => {
-    setCurrentIndex(prev => prev < pendingProposals.length - 1 ? prev + 1 : 0);
+    setCurrentIndex(prev => prev < displayProposals.length - 1 ? prev + 1 : 0);
   };
 
-  const currentProposal = pendingProposals[currentIndex];
+  const currentProposal = displayProposals[currentIndex];
+
+  // 기간 문자열 생성
+  const periodString = `${currentProposal.serviceStartDate} ~ ${currentProposal.serviceEndDate}`;
+  
+  // 요일 문자열 생성
+  const dayOfWeekString = currentProposal.dayOfWeek.join(', ');
+  
+  // 시간대 문자열 생성
+  const timeSlotString = `${currentProposal.serviceStartTime} - ${currentProposal.serviceEndTime}`;
 
   return (
     <div>
       <Flex align="center" justify="between" className="mb-4">
         <Heading size="4">정기 제안 알림</Heading>
-        {pendingProposals.length > 1 && (
+        {displayProposals.length > 1 && (
           <Flex align="center" gap="4">
             <Button 
               variant="ghost" 
@@ -63,7 +63,7 @@ export default function RegularProposalNotification({ proposals }: RegularPropos
               <ChevronLeft size={20} />
             </Button>
             <Text size="4" color="gray" className="tracking-widest">
-              {currentIndex + 1} / {pendingProposals.length}
+              {currentIndex + 1} / {displayProposals.length}
             </Text>
             <Button 
               variant="ghost" 
@@ -91,23 +91,23 @@ export default function RegularProposalNotification({ proposals }: RegularPropos
           <div className="bg-gray-50 rounded-lg p-4 space-y-3">
             <Flex align="center" gap="2">
               <User size={16} className="text-gray-500" />
-              <Text size="3" weight="medium">{currentProposal.applicantName}</Text>
+              <Text size="3" weight="medium">{currentProposal.consumerName}</Text>
             </Flex>
             <Flex align="center" gap="2">
               <Calendar size={16} className="text-gray-500" />
-              <Text size="3" weight="medium">{currentProposal.period}</Text>
+              <Text size="3" weight="medium">{periodString}</Text>
             </Flex>
             <Flex align="center" gap="2">
               <Info size={16} className="text-gray-500" />
-              <Text size="3" weight="medium">총 {currentProposal.totalSessions}회차</Text>
+              <Text size="3" weight="medium">총 {currentProposal.totalOccurrences}회차</Text>
             </Flex>
             <Flex align="center" gap="2">
               <Calendar size={16} className="text-gray-500" />
-              <Text size="3" weight="medium">{currentProposal.dayOfWeek}</Text>
+              <Text size="3" weight="medium">{dayOfWeekString}</Text>
             </Flex>
             <Flex align="center" gap="2">
               <Clock size={16} className="text-gray-500" />
-              <Text size="3" weight="medium">{currentProposal.timeSlot}</Text>
+              <Text size="3" weight="medium">{timeSlotString}</Text>
             </Flex>
           </div>
 

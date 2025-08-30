@@ -1,40 +1,5 @@
 import { API_CONFIG, API_ENDPOINTS } from './config';
-
-// 요양보호사 스케줄 응답 타입
-export interface CaregiverScheduleResponse {
-  serviceMatchId: string;
-  consumerName: string;
-  serviceDate: string;
-  startTime: string;
-  endTime: string;
-  serviceType: string;
-  address: string;
-  status: string;
-  isRegular?: boolean;
-  regularSequence?: { current: number; total: number };
-}
-
-// 요양보호사 스케줄 상세 응답 타입
-export interface CaregiverScheduleDetailResponse {
-  serviceMatchId: string;
-  consumerName: string;
-  consumerPhone: string;
-  emergencyContact: string;
-  serviceDate: string;
-  startTime: string;
-  endTime: string;
-  serviceType: string;
-  address: string;
-  entryMethod: string;
-  careGrade: string;
-  weight: string;
-  hasDementia: boolean;
-  isBedridden: boolean;
-  cognitiveStatus: string;
-  cohabitationStatus: string;
-  specialNotes: string;
-  status: string;
-}
+import { CaregiverScheduleResponse, CaregiverScheduleDetailResponse } from '../types';
 
 // 주간 스케줄 조회
 export const getWeeklySchedule = async (caregiverId: string): Promise<CaregiverScheduleResponse[]> => {

@@ -9,21 +9,11 @@ import {
   MapPin
 } from "lucide-react";
 import { formatTime, calculateDuration } from "../../utils/formatters";
-
-interface Schedule {
-  id: string;
-  time: string;
-  clientName: string;
-  address: string;
-  serviceType: string;
-  status: 'scheduled' | 'completed' | 'cancelled';
-  isRegular?: boolean;
-  regularSequence?: { current: number; total: number };
-}
+import { CaregiverScheduleResponse } from "../../types";
 
 interface ScheduleListProps {
-  schedules: Schedule[];
-  filterFunction?: (schedule: Schedule) => boolean;
+  schedules: CaregiverScheduleResponse[];
+  filterFunction?: (schedule: CaregiverScheduleResponse) => boolean;
   showStatus?: boolean;
   getStatusColor?: (status: string) => string;
   getStatusText?: (status: string) => string;
@@ -65,17 +55,18 @@ export default function ScheduleList({
   return (
     <Flex direction="column" gap="3">
       {filteredSchedules.map((schedule) => {
-        const timeInfo = formatTime(schedule.time);
+        const timeString = `${schedule.serviceStartTime} - ${schedule.serviceEndTime}`;
+        const timeInfo = formatTime(timeString);
         
         return (
           <div
-            key={schedule.id} 
+            key={schedule.serviceMatchId} 
             className={`p-4 ${onClickSchedule ? 'cursor-pointer hover:bg-gray-50 transition-colors' : ''}`}
-            onClick={() => handleScheduleClick(schedule.id)}
+            onClick={() => handleScheduleClick(schedule.serviceMatchId)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                handleScheduleClick(schedule.id);
+                handleScheduleClick(schedule.serviceMatchId);
               }
             }}
             role={onClickSchedule ? 'button' : undefined}
@@ -101,15 +92,15 @@ export default function ScheduleList({
               <Flex direction="column" gap="2" className="flex-1">
                 {/* 고객명과 상태 */}
                 <Flex align="center" gap="3">
-                  <Text size="3" weight="medium">{schedule.clientName} 님</Text>
+                  <Text size="3" weight="medium">{schedule.consumerName} 님</Text>
                   {showStatus && (
                     <>
                       {getStatusColor && getStatusText ? (
                         <Badge 
-                          color={getStatusColor(schedule.status) as "blue" | "green" | "red" | "gray"}
+                          color={getStatusColor(schedule.matchStatus) as "blue" | "green" | "red" | "gray"}
                           className="text-xs"
                         >
-                          {getStatusText(schedule.status)}
+                          {getStatusText(schedule.matchStatus)}
                         </Badge>
                       ) : (
                         <Badge color="blue" className="text-xs">
@@ -118,22 +109,17 @@ export default function ScheduleList({
                       )}
                     </>
                   )}
-                  {schedule.isRegular && schedule.regularSequence && (
-                    <Badge variant="soft" color="purple" className="text-xs">
-                      {schedule.regularSequence.current}회차 (총 {schedule.regularSequence.total}회)
-                    </Badge>
-                  )}
                 </Flex>
 
                 {/* 주소와 소요 시간 - 세로 배치 */}
                 <Flex direction="column" gap="1">
                   <Flex align="center" gap="1">
                     <MapPin size={14} className="text-gray-500" />
-                    <Text size="2" color="gray">{schedule.address}</Text>
+                    <Text size="2" color="gray">{schedule.serviceAddress}</Text>
                   </Flex>
                   <Flex align="center" gap="1">
                     <Clock size={14} className="text-gray-500" />
-                    <Text size="2" color="gray">{calculateDuration(schedule.time)}</Text>
+                    <Text size="2" color="gray">{calculateDuration(timeString)}</Text>
                   </Flex>
                 </Flex>
               </Flex>

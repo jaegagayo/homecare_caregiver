@@ -5,11 +5,11 @@ import {
 } from "@radix-ui/themes";
 import { MapPin } from "lucide-react";
 import { formatTime } from "../../utils/formatters";
-import { Schedule } from "../../types";
+import { CaregiverScheduleResponse } from "../../types";
 
 interface UpcomingScheduleCardProps {
-  schedule: Schedule | null;
-  calculateTimeRemaining: (timeString: string) => string;
+  schedule: CaregiverScheduleResponse | null;
+  calculateTimeRemaining: (startTime: string) => string;
 }
 
 export default function UpcomingScheduleCard({ schedule, calculateTimeRemaining }: UpcomingScheduleCardProps) {
@@ -21,7 +21,8 @@ export default function UpcomingScheduleCard({ schedule, calculateTimeRemaining 
     );
   }
 
-  const timeInfo = formatTime(schedule.time);
+  const timeString = `${schedule.serviceStartTime} - ${schedule.serviceEndTime}`;
+  const timeInfo = formatTime(timeString);
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
@@ -31,7 +32,7 @@ export default function UpcomingScheduleCard({ schedule, calculateTimeRemaining 
           {timeInfo.start} ~ {timeInfo.end}
         </Text>
         <Text size="3" style={{ color: 'var(--accent-11)' }}>
-          시작까지 {calculateTimeRemaining(schedule.time)} 전
+          시작까지 {calculateTimeRemaining(schedule.serviceStartTime)} 전
         </Text>
       </div>
       
@@ -41,14 +42,9 @@ export default function UpcomingScheduleCard({ schedule, calculateTimeRemaining 
           {/* 고객 정보 */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Text size="5" weight="bold">{schedule.clientName}님</Text>
+              <Text size="5" weight="bold">{schedule.consumerName}님</Text>
               <div className="flex gap-2">
                 <Badge color="blue" className="text-xs">{schedule.serviceType}</Badge>
-                {schedule.isRegular && schedule.regularSequence && (
-                  <Badge variant="soft" color="purple" className="text-xs">
-                    {schedule.regularSequence.current}회차 (총 {schedule.regularSequence.total}회)
-                  </Badge>
-                )}
               </div>
             </div>
             
@@ -56,7 +52,7 @@ export default function UpcomingScheduleCard({ schedule, calculateTimeRemaining 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <MapPin size={16} className="text-gray-500" />
-                <Text size="3" color="gray">{schedule.address}</Text>
+                <Text size="3" color="gray">{schedule.serviceAddress}</Text>
               </div>
               <Button size="2" variant="outline">
                 네이버 지도로 보기

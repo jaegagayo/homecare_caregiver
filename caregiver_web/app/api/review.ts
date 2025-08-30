@@ -76,3 +76,4 @@ export const getReviewDetail = async (reviewId: string): Promise<ReviewDetailRes
     throw error;
   }
 };
+

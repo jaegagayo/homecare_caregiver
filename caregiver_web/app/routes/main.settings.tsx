@@ -16,6 +16,7 @@ import {
   UserMinus,
   Shield
 } from "lucide-react";
+import { clearStoredCaregiverId } from "../api/auth";
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -25,8 +26,6 @@ export default function SettingsPage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
-
 
   const handlePasswordChange = () => {
     // TODO: 비밀번호 변경 API 호출
@@ -38,8 +37,13 @@ export default function SettingsPage() {
   };
 
   const handleLogout = () => {
+    // caregiverId 삭제
+    clearStoredCaregiverId();
+    
+    // 기존 토큰들도 삭제 (하위 호환성)
     localStorage.removeItem("caregiver_token");
     localStorage.removeItem("caregiver_email");
+    
     navigate("/");
   };
 
@@ -106,30 +110,36 @@ export default function SettingsPage() {
         <Dialog.Content>
           <Dialog.Title>비밀번호 변경</Dialog.Title>
           <Flex direction="column" gap="4" className="mt-4">
-            <TextField.Root>
-              <TextField.Input
+            <Flex direction="column" gap="2">
+              <Text size="2" weight="medium">현재 비밀번호</Text>
+              <TextField.Root
                 type="password"
-                placeholder="현재 비밀번호"
+                placeholder="현재 비밀번호를 입력하세요"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
+                size="3"
               />
-            </TextField.Root>
-            <TextField.Root>
-              <TextField.Input
+            </Flex>
+            <Flex direction="column" gap="2">
+              <Text size="2" weight="medium">새 비밀번호</Text>
+              <TextField.Root
                 type="password"
-                placeholder="새 비밀번호"
+                placeholder="새 비밀번호를 입력하세요"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
+                size="3"
               />
-            </TextField.Root>
-            <TextField.Root>
-              <TextField.Input
+            </Flex>
+            <Flex direction="column" gap="2">
+              <Text size="2" weight="medium">새 비밀번호 확인</Text>
+              <TextField.Root
                 type="password"
-                placeholder="새 비밀번호 확인"
+                placeholder="새 비밀번호를 다시 입력하세요"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                size="3"
               />
-            </TextField.Root>
+            </Flex>
           </Flex>
           <Flex gap="3" className="mt-6">
             <Dialog.Close>
@@ -147,8 +157,8 @@ export default function SettingsPage() {
       {/* 회원 탈퇴 확인 다이얼로그 */}
       <Dialog.Root open={showWithdrawDialog} onOpenChange={setShowWithdrawDialog}>
         <Dialog.Content>
-          <Dialog.Title className="text-red-600">회원 탈퇴</Dialog.Title>
-          <Text size="2" color="gray" className="mt-4">
+          <Dialog.Title>회원 탈퇴</Dialog.Title>
+          <Text size="3" color="gray" className="mt-4">
             정말로 회원 탈퇴를 하시겠습니까? 이 작업은 되돌릴 수 없습니다.
           </Text>
           <Flex gap="3" className="mt-6">

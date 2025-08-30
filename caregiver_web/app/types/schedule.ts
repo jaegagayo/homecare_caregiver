@@ -1,41 +1,36 @@
-export interface ScheduleDetail {
-  id: string;
-  date: string;
-  time: string;
-  applicantName: string;
-  status: 'pending_approval' | 'institution_not_selected' | 'scheduled' | 'completed';
-  isRegular: boolean;
-  regularSequence?: { current: number; total: number };
-  
-  // 신청자 연락처 정보
-  contactNumber: string;
+// 요양보호사 스케줄 응답 타입 - 백엔드와 정확히 일치
+export interface CaregiverScheduleResponse {
+  serviceMatchId: string;
+  consumerName: string;
+  serviceDate: string;
+  serviceStartTime: string;
+  serviceEndTime: string;
+  serviceAddress: string;
+  serviceType: string;
+  matchStatus: string;
+  requestStatus: string;
+}
+
+// 요양보호사 스케줄 상세 응답 타입
+export interface CaregiverScheduleDetailResponse {
+  serviceMatchId: string;
+  consumerName: string;
+  consumerPhone: string;
   emergencyContact: string;
-  
-  // 방문 위치 정보
-  visitAddress: string;
+  serviceDate: string;
+  startTime: string;
+  endTime: string;
+  serviceType: string;
+  address: string;
   entryMethod: string;
-  
-  // 신청자 정보
   careGrade: string;
   weight: string;
   hasDementia: boolean;
   isBedridden: boolean;
   cognitiveStatus: string;
   cohabitationStatus: string;
-  
-  // 신청자 입력 특이사항
   specialNotes: string;
-}
-
-export interface Schedule {
-  id: string;
-  time: string;
-  clientName: string;
-  address: string;
-  serviceType: string;
-  status: 'scheduled' | 'completed' | 'cancelled';
-  isRegular?: boolean;
-  regularSequence?: { current: number; total: number };
+  status: string;
 }
 
 

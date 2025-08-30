@@ -12,6 +12,7 @@ import {
   User,
   ArrowLeft
 } from "lucide-react";
+import { getStoredCaregiverId } from "../api/auth";
 
 export default function MainLayout() {
   const [currentTab, setCurrentTab] = useState(0);
@@ -21,9 +22,9 @@ export default function MainLayout() {
   const location = useLocation();
 
   useEffect(() => {
-    // 인증 상태 확인
-    const token = localStorage.getItem("caregiver_token");
-    if (!token) {
+    // 인증 상태 확인 - caregiverId 사용
+    const caregiverId = getStoredCaregiverId();
+    if (!caregiverId) {
       navigate("/");
       return;
     }
@@ -57,7 +58,7 @@ export default function MainLayout() {
     } else if (path.includes("/main/customer-support")) {
       setCurrentPageTitle("고객센터");
     }
-  }, [navigate, location]);
+  }, [location.pathname, navigate]);
 
   const handleProfile = () => {
     navigate("/main/my-page");
@@ -85,22 +86,32 @@ export default function MainLayout() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 고정 헤더 */}
-      <div className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 px-4 py-3 z-50">
+      <div className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-10">
         <Flex justify="between" align="center">
           <Flex align="center" gap="3">
-            <Button variant="ghost" size="2" onClick={handleGoBack}>
+            <Button 
+              variant="ghost" 
+              size="2" 
+              onClick={handleGoBack}
+              className="p-1"
+            >
               <ArrowLeft size={16} />
             </Button>
             <Text size="4" weight="medium">{currentPageTitle}</Text>
           </Flex>
-          <Button variant="ghost" size="2" onClick={handleProfile}>
+          <Button 
+            variant="ghost" 
+            size="2" 
+            onClick={handleProfile}
+            className="p-1"
+          >
             <User size={16} />
           </Button>
         </Flex>
       </div>
 
-      {/* 메인 콘텐츠 - 헤더 높이만큼 패딩 추가 */}
-      <div className="pt-16 pb-20">
+      {/* 메인 콘텐츠 */}
+      <div className="pb-20">
         <Outlet />
       </div>
 

@@ -1,18 +1,5 @@
 import { API_CONFIG, API_ENDPOINTS } from './config';
-
-// 정기 제안 요약 응답 타입
-export interface RecurringOfferSummaryResponse {
-  recurringOfferId: string;
-  consumerName: string;
-  period: string;
-  totalSessions: number;
-  dayOfWeek: string;
-  timeSlot: string;
-  address: string;
-  serviceType: string;
-  specialRequests?: string;
-  status: 'pending' | 'approved' | 'rejected';
-}
+import { RecurringOfferSummaryResponse } from '../types';
 
 // 정기 제안 알림 조회
 export const getRecurringOfferSummary = async (caregiverId: string): Promise<RecurringOfferSummaryResponse[]> => {

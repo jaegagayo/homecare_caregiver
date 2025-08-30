@@ -220,3 +220,4 @@ export const deleteAccount = async (
     throw error;
   }
 };
+

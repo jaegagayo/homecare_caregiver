@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@remix-run/react";
 import { Button, Container, Flex, Heading, Text } from "@radix-ui/themes";
+import { getStoredCaregiverId } from "../api/auth";
 
 export default function Index() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -8,9 +9,9 @@ export default function Index() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // 인증 상태 확인
-    const token = localStorage.getItem("caregiver_token");
-    setIsAuthenticated(!!token);
+    // 인증 상태 확인 - caregiverId 사용
+    const caregiverId = getStoredCaregiverId();
+    setIsAuthenticated(!!caregiverId);
     setIsLoading(false);
   }, []);
 
@@ -37,7 +38,7 @@ export default function Index() {
   }
 
   return (
-    <Container size="2" className="min-h-screen flex items-center justify-center bg-gradient-to-br from-accent-1 to-accent-2">
+    <Container size="2" className="min-h-screen flex items-center justify-center">
       <div className="w-full max-w-md p-8">
         <Flex direction="column" align="center" gap="6">
           <Flex direction="column" align="center" gap="4">

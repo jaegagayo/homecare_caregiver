@@ -154,3 +154,4 @@ export const uploadProfileImage = async (
     throw error;
   }
 };
+
