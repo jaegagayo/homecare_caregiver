@@ -1,10 +1,9 @@
 import { getStoredCaregiverId } from './auth';
-import { getCaregiverProfile } from './caregiver';
 import { getTodaySchedule, getTomorrowSchedule } from './schedule';
 import { getRecurringOfferSummary } from './recurringOffer';
 import { HomeData, CaregiverScheduleResponse, RecurringOfferSummaryResponse } from '../types';
 
-// 홈 페이지 데이터 조회 - 백엔드 API 응답을 그대로 사용
+// 홈 페이지 데이터 조회 - 프로필 API 제거
 export const getHomeData = async (): Promise<HomeData> => {
   try {
     const caregiverId = getStoredCaregiverId();
@@ -12,19 +11,21 @@ export const getHomeData = async (): Promise<HomeData> => {
       throw new Error('caregiverId not found in localStorage');
     }
 
-    // 병렬로 모든 데이터 조회
-    const [profile, todaySchedules, tomorrowSchedules, regularProposals] = await Promise.all([
-      getCaregiverProfile(caregiverId),
+    // 프로필 API 제거하고 스케줄과 제안만 조회
+    const results = await Promise.allSettled([
       getTodaySchedule(caregiverId),
       getTomorrowSchedule(caregiverId),
       getRecurringOfferSummary(caregiverId),
     ]);
 
+    // 각 결과 처리
+    const [todayResult, tomorrowResult, proposalsResult] = results;
+
     return {
-      caregiverName: profile.caregiverName,
-      todaySchedules: todaySchedules,
-      tomorrowSchedules: tomorrowSchedules,
-      regularProposals: regularProposals,
+      caregiverName: '케어기버', // 기본 환영 메시지
+      todaySchedules: todayResult.status === 'fulfilled' ? todayResult.value : [],
+      tomorrowSchedules: tomorrowResult.status === 'fulfilled' ? tomorrowResult.value : [],
+      regularProposals: proposalsResult.status === 'fulfilled' ? proposalsResult.value : [],
     };
   } catch (error) {
     console.error('Home data fetch error:', error);

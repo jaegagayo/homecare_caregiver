@@ -13,23 +13,30 @@ import {
 } from "../components/Home";
 import { ScheduleList, WarningCard } from "../components/Common";
 import { formatToday } from "../utils/formatters";
-import { getHomeData, HomeData } from "../api/home";
+import { getHomeData } from "../api/home";
+import { HomeData } from "../types";
 
 export default function HomePage() {
   const [homeData, setHomeData] = useState<HomeData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [partialErrors, setPartialErrors] = useState<string[]>([]);
 
   useEffect(() => {
     const loadHomeData = async () => {
       try {
         setIsLoading(true);
         setError(null);
+        setPartialErrors([]);
         const data = await getHomeData();
         setHomeData(data);
       } catch (err) {
         console.error('홈 데이터 로드 실패:', err);
-        setError('데이터를 불러오는데 실패했습니다.');
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('데이터를 불러오는데 실패했습니다.');
+        }
       } finally {
         setIsLoading(false);
       }
