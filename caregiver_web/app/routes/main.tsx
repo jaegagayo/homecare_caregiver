@@ -8,7 +8,6 @@ import {
 import { 
   Home, 
   Calendar, 
-  Users,
   User,
   ArrowLeft
 } from "lucide-react";
@@ -38,17 +37,15 @@ export default function MainLayout() {
     } else if (path.includes("/main/schedule")) {
       setCurrentTab(1);
       setCurrentPageTitle("일정");
-    } else if (path.includes("/main/matching")) {
+    } else if (path.includes("/main/my-page")) {
       setCurrentTab(2);
-      setCurrentPageTitle("매칭");
+      setCurrentPageTitle("내 정보");
     } else if (path.includes("/main/work-conditions")) {
       setCurrentPageTitle("근무 조건 설정");
     } else if (path.includes("/main/approval-waiting")) {
       setCurrentPageTitle("승인 대기");
     } else if (path.includes("/main/institution-registration")) {
       setCurrentPageTitle("기관 소속 등록");
-    } else if (path.includes("/main/my-page")) {
-      setCurrentPageTitle("마이페이지");
     } else if (path.includes("/main/profile-management")) {
       setCurrentPageTitle("프로필 관리");
     } else if (path.includes("/main/review-management")) {
@@ -71,7 +68,7 @@ export default function MainLayout() {
   const tabs = [
     { id: 0, label: "홈", icon: Home, path: "/main/home" },
     { id: 1, label: "일정", icon: Calendar, path: "/main/schedule" },
-    { id: 2, label: "매칭", icon: Users, path: "/main/matching" },
+    { id: 2, label: "내 정보", icon: User, path: "/main/my-page" },
   ];
 
   const handleTabChange = (tabId: number) => {

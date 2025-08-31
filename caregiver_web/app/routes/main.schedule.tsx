@@ -9,6 +9,7 @@ import ScheduleListView from "../components/Schedule/ListView/ScheduleListView";
 import ScheduleHeader from "../components/Schedule/CalendarView/ScheduleHeader";
 import ScheduleGridBody from "../components/Schedule/CalendarView/ScheduleGridBody";
 import { getWeeklySchedule } from "../api/schedule";
+import { getStoredCaregiverId } from "../api/auth";
 import { CaregiverScheduleResponse } from "../types";
 
 export default function SchedulePage() {
@@ -60,8 +61,10 @@ export default function SchedulePage() {
       try {
         setIsLoading(true);
         
-        // TODO: 실제 caregiverId를 사용해야 함 (현재는 임시로 "1" 사용)
-        const caregiverId = "1";
+        const caregiverId = getStoredCaregiverId();
+        if (!caregiverId) {
+          throw new Error('caregiverId not found in localStorage');
+        }
         
         // 주간 일정 조회 - 백엔드 데이터를 그대로 사용
         const apiData = await getWeeklySchedule(caregiverId);

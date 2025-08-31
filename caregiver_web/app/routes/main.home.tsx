@@ -20,14 +20,13 @@ export default function HomePage() {
   const [homeData, setHomeData] = useState<HomeData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [partialErrors, setPartialErrors] = useState<string[]>([]);
+
 
   useEffect(() => {
     const loadHomeData = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        setPartialErrors([]);
         const data = await getHomeData();
         setHomeData(data);
       } catch (err) {
@@ -47,18 +46,20 @@ export default function HomePage() {
 
   const getStatusColor = (matchStatus: string) => {
     switch (matchStatus) {
-      case 'SCHEDULED': return 'blue';
+      case 'CONFIRMED': return 'blue';
       case 'COMPLETED': return 'green';
       case 'CANCELLED': return 'red';
+      case 'PENDING': return 'yellow';
       default: return 'gray';
     }
   };
 
   const getStatusText = (matchStatus: string) => {
     switch (matchStatus) {
-      case 'SCHEDULED': return '예정';
+      case 'CONFIRMED': return '예정';
       case 'COMPLETED': return '완료';
       case 'CANCELLED': return '취소';
+      case 'PENDING': return '대기';
       default: return '알 수 없음';
     }
   };
