@@ -32,4 +32,8 @@ export const API_ENDPOINTS = {
     APPROVE: '/recurringOffer/caregiver/approve',
     REJECT: '/recurringOffer/caregiver/reject',
   },
+  WORK_CONDITIONS: {
+    GET: '/caregiver/preference',
+    CREATE: '/caregiver/preference',
+  },
 } as const; 

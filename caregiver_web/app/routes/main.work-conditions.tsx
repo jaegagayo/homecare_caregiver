@@ -1,83 +1,114 @@
-import { useState } from "react";
-import { 
-  Container, 
-  Flex, 
-  Text, 
-  Button,
-  TextArea,
-  Heading,
-  Card,
-  Dialog
-} from "@radix-ui/themes";
-import { 
-  X
-} from "lucide-react";
+import { useState, useEffect } from "react";
+import { Container, Flex } from "@radix-ui/themes";
 import { useNavigate, useSearchParams } from "@remix-run/react";
+import { 
+  NaturalLanguageInput, 
+  DetailSettingsForm, 
+  WorkDaysDialog,
+  TimeRangeDialog,
+  AreaDialog,
+  ServiceTypeDialog,
+  DurationDialog,
+  TransportationDialog,
+  LunchTimeDialog,
+  BufferTimeDialog,
+  CareTypeDialog,
+  PreferredAgeDialog,
+  PreferredGenderDialog,
+  AvailableTimeDialog
+} from "../components/WorkConditions";
+import { WorkConditions, DayOfWeek, ServiceType, Disease, PreferredGender, AddressType } from "../types/workConditions";
+import { getWorkConditions, saveWorkConditions } from "../api/workConditions";
 
-interface WorkConditions {
-  hourlyRate: {
-    min: number;
-    max: number;
-  };
-  workDays: string[];
-  workHours: {
-    start: string;
-    end: string;
-  };
-  workAreas: string[];
-  serviceTypes: string[];
-  specialNotes: string[];
-  // 추가된 항목들
-  workDuration: {
-    min: number;
-    max: number;
-  };
-  travelTime: number;
-  transportation: string;
-  lunchTime: {
-    included: boolean;
-    duration: number;
-  };
-  bufferTime: number;
-  dementiaCare: boolean;
-  bedriddenCare: boolean;
-  preferredAge: {
-    min: number;
-    max: number;
-  };
-  preferredGender: string;
-}
+// localStorage에서 caregiverId를 가져오는 함수
+const getStoredCaregiverId = (): string => {
+  return localStorage.getItem('caregiverId') || '';
+};
 
 export default function WorkConditionsPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState<string>('natural');
+  // 최초 생성인지 변경인지 확인
+  const isInitialSetup = searchParams.get('mode') === 'initial' || !localStorage.getItem('work_conditions_saved');
+  
+  // 기존 사용자는 세부 설정 화면부터, 신규 사용자는 자연어 입력 화면부터
+  const [activeTab, setActiveTab] = useState<string>(isInitialSetup ? 'natural' : 'result');
   const [naturalInput, setNaturalInput] = useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [isFromAnalysis, setIsFromAnalysis] = useState<boolean>(false);
   const [isWorkDaysDialogOpen, setIsWorkDaysDialogOpen] = useState<boolean>(false);
-  const [tempWorkDays, setTempWorkDays] = useState<string[]>([]);
+  const [tempWorkDays, setTempWorkDays] = useState<DayOfWeek[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   
-  // 최초 생성인지 변경인지 확인
-  const isInitialSetup = searchParams.get('mode') === 'initial' || !localStorage.getItem('work_conditions_saved');
+  // 다이얼로그 상태들
+  const [isTimeRangeDialogOpen, setIsTimeRangeDialogOpen] = useState<boolean>(false);
+  const [isAvailableTimeDialogOpen, setIsAvailableTimeDialogOpen] = useState<boolean>(false);
+  const [isAreaDialogOpen, setIsAreaDialogOpen] = useState<boolean>(false);
+  const [isServiceTypeDialogOpen, setIsServiceTypeDialogOpen] = useState<boolean>(false);
+  const [isDurationDialogOpen, setIsDurationDialogOpen] = useState<boolean>(false);
+  const [isTransportationDialogOpen, setIsTransportationDialogOpen] = useState<boolean>(false);
+  const [isLunchTimeDialogOpen, setIsLunchTimeDialogOpen] = useState<boolean>(false);
+  const [isBufferTimeDialogOpen, setIsBufferTimeDialogOpen] = useState<boolean>(false);
+  const [isCareTypeDialogOpen, setIsCareTypeDialogOpen] = useState<boolean>(false);
+  const [isPreferredAgeDialogOpen, setIsPreferredAgeDialogOpen] = useState<boolean>(false);
+  const [isPreferredGenderDialogOpen, setIsPreferredGenderDialogOpen] = useState<boolean>(false);
+  
+  // 새로운 타입에 맞는 초기값
   const [workConditions, setWorkConditions] = useState<WorkConditions>({
-    hourlyRate: { min: 0, max: 50000 },
-    workDays: ['월', '화', '수', '목', '금', '토', '일'],
-    workHours: { start: '00:00', end: '23:59' },
-    workAreas: ['전체'],
-    serviceTypes: ['전체'],
-    specialNotes: ['없음'],
-    // 추가된 항목들 초기값
-    workDuration: { min: 2, max: 8 },
-    travelTime: 30,
+    dayOfWeek: [DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY],
+    workStartTime: '09:00:00',
+    workEndTime: '18:00:00',
+    workMinTime: 2, // 2시간
+    workMaxTime: 8, // 8시간
+    availableTime: 30, // 30분
+    workArea: '전체',
+    addressType: AddressType.ROAD,
+    location: { latitude: 37.5665, longitude: 126.9780 }, // 서울시청 기본값
     transportation: '대중교통',
-    lunchTime: { included: true, duration: 60 },
-    bufferTime: 30,
-    dementiaCare: false,
-    bedriddenCare: false,
-    preferredAge: { min: 60, max: 90 },
-    preferredGender: '상관없음'
+    lunchBreak: 60, // 60분
+    bufferTime: 30, // 30분
+    supportedConditions: [],
+    preferredMinAge: 60,
+    preferredMaxAge: 90,
+    preferredGender: PreferredGender.ALL,
+    serviceTypes: [ServiceType.VISITING_CARE]
   });
+
+  // 컴포넌트 마운트 시 근무 조건 불러오기
+  useEffect(() => {
+    const loadWorkConditions = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const caregiverId = getStoredCaregiverId();
+        if (!caregiverId) {
+          setError('로그인이 필요합니다.');
+          setIsLoading(false);
+          return;
+        }
+
+        const savedConditions = await getWorkConditions(caregiverId);
+        if (savedConditions) {
+          console.log('savedConditions', savedConditions);
+          setWorkConditions(savedConditions);
+          // 기존 사용자는 세부 설정 화면부터
+          setActiveTab('result');
+        } else {
+          // 신규 사용자는 자연어 입력 화면부터
+          setActiveTab('natural');
+        }
+      } catch (err) {
+        console.error('근무 조건 로드 실패:', err);
+        setError('근무 조건을 불러오는데 실패했습니다.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadWorkConditions();
+  }, []);
 
   const handleAnalyze = async () => {
     setIsAnalyzing(true);
@@ -89,11 +120,11 @@ export default function WorkConditionsPage() {
   };
 
   const handleWorkDaysClick = () => {
-    setTempWorkDays([...workConditions.workDays]);
+    setTempWorkDays([...workConditions.dayOfWeek]);
     setIsWorkDaysDialogOpen(true);
   };
 
-  const handleDayToggle = (day: string) => {
+  const handleDayToggle = (day: DayOfWeek) => {
     setTempWorkDays(prev => 
       prev.includes(day) 
         ? prev.filter(d => d !== day)
@@ -102,7 +133,7 @@ export default function WorkConditionsPage() {
   };
 
   const handleWeekdaySelect = () => {
-    const weekdays = ['월', '화', '수', '목', '금'];
+    const weekdays = [DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY];
     const allWeekdaysSelected = weekdays.every(day => tempWorkDays.includes(day));
     
     if (allWeekdaysSelected) {
@@ -116,7 +147,7 @@ export default function WorkConditionsPage() {
   };
 
   const handleWeekendSelect = () => {
-    const weekends = ['토', '일'];
+    const weekends = [DayOfWeek.SATURDAY, DayOfWeek.SUNDAY];
     const allWeekendsSelected = weekends.every(day => tempWorkDays.includes(day));
     
     if (allWeekendsSelected) {
@@ -130,19 +161,19 @@ export default function WorkConditionsPage() {
   };
 
   const isAllWeekdaysSelected = () => {
-    const weekdays = ['월', '화', '수', '목', '금'];
+    const weekdays = [DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY];
     return weekdays.every(day => tempWorkDays.includes(day));
   };
 
   const isAllWeekendsSelected = () => {
-    const weekends = ['토', '일'];
+    const weekends = [DayOfWeek.SATURDAY, DayOfWeek.SUNDAY];
     return weekends.every(day => tempWorkDays.includes(day));
   };
 
   const handleWorkDaysSave = () => {
     setWorkConditions(prev => ({
       ...prev,
-      workDays: tempWorkDays
+      dayOfWeek: tempWorkDays
     }));
     setIsWorkDaysDialogOpen(false);
   };
@@ -151,400 +182,269 @@ export default function WorkConditionsPage() {
     setIsWorkDaysDialogOpen(false);
   };
 
-  const handleSave = () => {
-    // TODO: 설정 저장 로직
-    localStorage.setItem('work_conditions_saved', 'true');
-    
-    if (isInitialSetup) {
-      // 최초 생성인 경우: 승인 대기 페이지로 이동
-      navigate("/main/approval-waiting");
-    } else {
-      // 변경인 경우: 메인 페이지로 돌아가기
-      navigate("/main/home");
+  const handleSave = async () => {
+    try {
+      const caregiverId = getStoredCaregiverId();
+      if (!caregiverId) {
+        setError('로그인이 필요합니다.');
+        return;
+      }
+
+      await saveWorkConditions(caregiverId, workConditions);
+      
+      // 로컬 스토리지에 저장 완료 표시
+      localStorage.setItem('work_conditions_saved', 'true');
+      
+      if (isInitialSetup) {
+        // 최초 생성인 경우: 승인 대기 페이지로 이동
+        navigate("/main/approval-waiting");
+      } else {
+        // 변경인 경우: 메인 페이지로 돌아가기
+        navigate("/main/home");
+      }
+    } catch (err) {
+      console.error('근무 조건 저장 실패:', err);
+      setError('근무 조건 저장에 실패했습니다.');
     }
   };
+
+  // 로딩 중이거나 에러가 있는 경우
+  if (isLoading) {
+    return (
+      <Container size="2" className="p-4">
+        <Flex justify="center" align="center" className="h-32">
+          <div>로딩 중...</div>
+        </Flex>
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container size="2" className="p-4">
+        <Flex justify="center" align="center" className="h-32">
+          <div className="text-red-500">{error}</div>
+        </Flex>
+      </Container>
+    );
+  }
 
   return (
     <Container size="2" className="p-4">
       <Flex direction="column" gap="6">
         {/* 자연어 입력 섹션 */}
         {activeTab === 'natural' && (
-          <Flex direction="column" gap="4">
-            <div>
-              <Heading size="4">
-                어떤 조건으로 근무하고 싶으신가요?
-              </Heading>
-              <Text size="2" color="gray">
-                줄글로 자유롭게 적어주시면 AI가 알아서 설정해드립니다.
-              </Text>
-            </div>
-
-            <Card className="p-4">
-              <Text size="2" weight="medium" className="mb-2 block">입력 예시</Text>
-              <Text size="1" color="gray" className="leading-relaxed">
-                • &quot;평일 오전에 강남구에서 방문요양 하고 싶어요&quot;<br/>
-                • &quot;시급은 15만원 정도면 좋겠어요&quot;<br/>
-                • &quot;치매 케어 경험이 있어서 중증 어르신도 괜찮아요&quot;<br/>
-                • &quot;야간은 어렵고, 평일 오전에만 가능해요&quot;
-              </Text>
-            </Card>
-
-            <TextArea
-              placeholder="평일 오전 9시부터 6시까지 강남구, 서초구에서 방문요양 하고 싶어요. 시급은 15만원 정도면 좋겠고, 치매 케어 경험이 있어요."
-              value={naturalInput}
-              onChange={(e) => setNaturalInput(e.target.value)}
-              className="min-h-32"
-            />
-
-            <Button 
-              onClick={handleAnalyze}
-              disabled={!naturalInput.trim() || isAnalyzing}
-              className="w-full"
-              size="3"
-            >
-              {isAnalyzing ? '분석 중...' : '분석하기'}
-            </Button>
-
-            <div className="flex items-center justify-center my-4">
-              <div className="flex-1 h-px bg-gray-300"></div>
-              <span className="px-4 text-sm text-gray-500">직접 설정하고 싶으시다면</span>
-              <div className="flex-1 h-px bg-gray-300"></div>
-            </div>
-
-            <Button 
-              variant="outline"
-              onClick={() => setActiveTab('result')}
-              className="w-full"
-              size="3"
-            >
-              직접 설정하러 가기
-            </Button>
-          </Flex>
+          <NaturalLanguageInput
+            naturalInput={naturalInput}
+            setNaturalInput={setNaturalInput}
+            isAnalyzing={isAnalyzing}
+            onAnalyze={handleAnalyze}
+            onDirectSetup={() => setActiveTab('result')}
+          />
         )}
 
         {/* 분석 결과 섹션 */}
         {activeTab === 'result' && (
-          <Flex direction="column" gap="4">
-            <div className="mb-2">
-              <Heading size="4">
-                {isFromAnalysis ? 'AI가 이해한 내용을 확인해주세요' : '근무 조건을 설정해주세요'}
-              </Heading>
-              <Text size="2" color="gray">
-                {isFromAnalysis 
-                  ? '각 항목을 터치하여 수정할 수 있습니다.' 
-                  : '각 항목을 터치하여 원하는 조건으로 설정해주세요.'
-                }
-              </Text>
-            </div>
-
-            <Flex direction="column" gap="4">
-              {/* 근무 가능 요일 섹션 */}
-              <button 
-                className="py-1 px-2 cursor-pointer hover:bg-gray-50 w-full text-left" 
-                onClick={handleWorkDaysClick}
-              >
-                <Flex justify="between" align="center">
-                  <Text size="3" weight="medium">근무 가능 요일</Text>
-                  <Text size="3" weight="medium">{workConditions.workDays.join(', ')}</Text>
-                </Flex>
-              </button>
-
-              <div className="w-full h-px bg-gray-200"></div>
-
-              {/* 근무 가능 시간 섹션 */}
-              <div className="py-1 px-2 cursor-pointer hover:bg-gray-50">
-                <Flex justify="between" align="center">
-                  <Text size="3" weight="medium">근무 가능 시간</Text>
-                  <Text size="3" weight="medium">{workConditions.workHours.start} ~ {workConditions.workHours.end}</Text>
-                </Flex>
-              </div>
-
-              <div className="w-full h-px bg-gray-200"></div>
-
-              {/* 1회 최소·최대 근무시간 섹션 */}
-              <div className="py-1 px-2 cursor-pointer hover:bg-gray-50">
-                <Flex justify="between" align="center">
-                  <Text size="3" weight="medium">1회 최소·최대 근무시간</Text>
-                  <Text size="3" weight="medium">{workConditions.workDuration.min}시간 ~ {workConditions.workDuration.max}시간</Text>
-                </Flex>
-              </div>
-
-              <div className="w-full h-px bg-gray-200"></div>
-
-              {/* 이동 가능 시간 섹션 */}
-              <div className="py-1 px-2 cursor-pointer hover:bg-gray-50">
-                <Flex justify="between" align="center">
-                  <Text size="3" weight="medium">이동 가능 시간</Text>
-                  <Text size="3" weight="medium">{workConditions.travelTime}분</Text>
-                </Flex>
-              </div>
-
-              <div className="w-full h-px bg-gray-200"></div>
-
-              {/* 근무 지역 섹션 */}
-              <div className="py-1 px-2 cursor-pointer hover:bg-gray-50">
-                <Flex justify="between" align="center">
-                  <Text size="3" weight="medium">근무 지역</Text>
-                  <Text size="3" weight="medium">{workConditions.workAreas.join(', ')}</Text>
-                </Flex>
-              </div>
-
-              <div className="w-full h-px bg-gray-200"></div>
-
-              {/* 이동수단 섹션 */}
-              <div className="py-1 px-2 cursor-pointer hover:bg-gray-50">
-                <Flex justify="between" align="center">
-                  <Text size="3" weight="medium">이동수단</Text>
-                  <Text size="3" weight="medium">{workConditions.transportation}</Text>
-                </Flex>
-              </div>
-
-              <div className="w-full h-px bg-gray-200"></div>
-
-              {/* 점심시간 섹션 */}
-              <div className="py-1 px-2 cursor-pointer hover:bg-gray-50">
-                <Flex justify="between" align="center">
-                  <Text size="3" weight="medium">점심시간</Text>
-                  <Text size="3" weight="medium">
-                    {workConditions.lunchTime.included ? `포함 (${workConditions.lunchTime.duration}분)` : '불포함'}
-                  </Text>
-                </Flex>
-              </div>
-
-              <div className="w-full h-px bg-gray-200"></div>
-
-              {/* 이동 시간 제외 사이 버퍼 간격 섹션 */}
-              <div className="py-1 px-2 cursor-pointer hover:bg-gray-50">
-                <Flex justify="between" align="center">
-                  <Text size="3" weight="medium">쉬는 시간 (버퍼 간격)</Text>
-                  <Text size="3" weight="medium">{workConditions.bufferTime}분</Text>
-                </Flex>
-              </div>
-
-              <div className="w-full h-px bg-gray-200"></div>
-
-              {/* 치매 환자 가능여부 섹션 */}
-              <div className="py-1 px-2 cursor-pointer hover:bg-gray-50">
-                <Flex justify="between" align="center">
-                  <Text size="3" weight="medium">치매 환자 가능여부</Text>
-                  <Text size="3" weight="medium">{workConditions.dementiaCare ? '가능' : '불가능'}</Text>
-                </Flex>
-              </div>
-
-              <div className="w-full h-px bg-gray-200"></div>
-
-              {/* 와상 환자 가능여부 섹션 */}
-              <div className="py-1 px-2 cursor-pointer hover:bg-gray-50">
-                <Flex justify="between" align="center">
-                  <Text size="3" weight="medium">와상 환자 가능여부</Text>
-                  <Text size="3" weight="medium">{workConditions.bedriddenCare ? '가능' : '불가능'}</Text>
-                </Flex>
-              </div>
-
-              <div className="w-full h-px bg-gray-200"></div>
-
-              {/* 돌봄 선호 연령 섹션 */}
-              <div className="py-1 px-2 cursor-pointer hover:bg-gray-50">
-                <Flex justify="between" align="center">
-                  <Text size="3" weight="medium">돌봄 선호 연령</Text>
-                  <Text size="3" weight="medium">{workConditions.preferredAge.min}세 ~ {workConditions.preferredAge.max}세</Text>
-                </Flex>
-              </div>
-
-              <div className="w-full h-px bg-gray-200"></div>
-
-              {/* 돌봄 선호 성별 섹션 */}
-              <div className="py-1 px-2 cursor-pointer hover:bg-gray-50">
-                <Flex justify="between" align="center">
-                  <Text size="3" weight="medium">돌봄 선호 성별</Text>
-                  <Text size="3" weight="medium">{workConditions.preferredGender}</Text>
-                </Flex>
-              </div>
-
-              <div className="w-full h-px bg-gray-200"></div>
-
-              {/* 서비스 유형 섹션 */}
-              <div className="py-1 px-2 cursor-pointer hover:bg-gray-50">
-                <Flex justify="between" align="center">
-                  <Text size="3" weight="medium">서비스 유형</Text>
-                  <Text size="3" weight="medium">{workConditions.serviceTypes.join(', ')}</Text>
-                </Flex>
-              </div>
-
-              <div className="w-full h-px bg-gray-200"></div>
-
-              {/* 희망 시급 섹션 */}
-              <div className="py-1 px-2 cursor-pointer hover:bg-gray-50">
-                <Flex justify="between" align="center">
-                  <Text size="3" weight="medium">희망 시급</Text>
-                  <Text size="4" weight="bold" style={{ color: 'var(--accent-9)' }}>
-                    ₩{workConditions.hourlyRate.min.toLocaleString()} ~ ₩{workConditions.hourlyRate.max.toLocaleString()}
-                  </Text>
-                </Flex>
-              </div>
-
-              <div className="w-full h-px bg-gray-200"></div>
-
-              {/* 특이사항 섹션 */}
-              <div className="py-1 px-2 cursor-pointer hover:bg-gray-50">
-                <Flex direction="column" gap="2">
-                  <Text size="3" weight="medium">특이사항</Text>
-                  <Flex gap="1" wrap="wrap">
-                    <div className="px-3 py-1.5 rounded-full text-sm" style={{ backgroundColor: 'var(--accent-3)', color: 'var(--accent-9)' }}>
-                      치매케어
-                    </div>
-                    <div className="px-3 py-1.5 rounded-full text-sm" style={{ backgroundColor: 'var(--accent-3)', color: 'var(--accent-9)' }}>
-                      경험자
-                    </div>
-                    <div className="px-3 py-1.5 rounded-full text-sm" style={{ backgroundColor: 'var(--accent-3)', color: 'var(--accent-9)' }}>
-                      야간가능
-                    </div>
-                    <div className="px-3 py-1.5 rounded-full text-sm" style={{ backgroundColor: 'var(--accent-3)', color: 'var(--accent-9)' }}>
-                      남성선호
-                    </div>
-                  </Flex>
-                </Flex>
-              </div>
-            </Flex>
-
-            <Flex gap="3" className="mt-4">
-              <Button onClick={handleSave} className="flex-1">
-                조건 저장
-              </Button>
-              <Button 
-                variant="outline"
-                onClick={() => setActiveTab('natural')}
-                className="flex-1"
-              >
-                자연어 입력으로 돌아가기
-              </Button>
-            </Flex>
-          </Flex>
+          <DetailSettingsForm
+            workConditions={workConditions}
+            isFromAnalysis={isFromAnalysis}
+            onWorkDaysClick={handleWorkDaysClick}
+            onTimeRangeClick={() => setIsTimeRangeDialogOpen(true)}
+            onAvailableTimeClick={() => setIsAvailableTimeDialogOpen(true)}
+            onAreaClick={() => setIsAreaDialogOpen(true)}
+            onServiceTypeClick={() => setIsServiceTypeDialogOpen(true)}
+            onDurationClick={() => setIsDurationDialogOpen(true)}
+            onTransportationClick={() => setIsTransportationDialogOpen(true)}
+            onLunchTimeClick={() => setIsLunchTimeDialogOpen(true)}
+            onBufferTimeClick={() => setIsBufferTimeDialogOpen(true)}
+            onCareTypeClick={() => setIsCareTypeDialogOpen(true)}
+            onPreferredAgeClick={() => setIsPreferredAgeDialogOpen(true)}
+            onPreferredGenderClick={() => setIsPreferredGenderDialogOpen(true)}
+            onSave={handleSave}
+            onBackToNatural={() => setActiveTab('natural')}
+          />
         )}
 
         {/* 근무 가능 일자 수정 다이얼로그 */}
-        <Dialog.Root open={isWorkDaysDialogOpen} onOpenChange={setIsWorkDaysDialogOpen}>
-          <Dialog.Content>
-            <Flex direction="column" gap="4">
-              <Flex justify="between" align="center">
-                <Dialog.Title className="flex items-center">근무 가능 일자 설정</Dialog.Title>
-                <Button 
-                  variant="ghost" 
-                  size="2"
-                  onClick={handleWorkDaysCancel}
-                  className="flex items-center gap-1 self-center -mt-4"
-                >
-                  <X size={16} />
-                  <Text size="2" weight="medium">닫기</Text>
-                </Button>
-              </Flex>
-              <Flex direction="column" gap="3">
-                {/* 요일 선택 섹션 */}
-                <Text size="2" weight="medium" className="mb-2">요일 선택</Text>
-                
-                <Flex direction="column" gap="6">
-                  {/* 평일 */}
-                  <Flex gap="4" justify="center">
-                    {['월', '화', '수', '목', '금'].map((day) => (
-                      <button 
-                        key={day} 
-                        className={`aspect-square w-12 h-12 rounded-full text-center cursor-pointer transition-colors flex items-center justify-center ${
-                          tempWorkDays.includes(day) 
-                            ? 'text-white' 
-                            : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                        style={{
-                          backgroundColor: tempWorkDays.includes(day) 
-                            ? 'var(--accent-9)' 
-                            : 'var(--gray-3)'
-                        }}
-                        onClick={() => handleDayToggle(day)}
-                      >
-                        <Text size="3" weight="medium">{day}</Text>
-                      </button>
-                    ))}
-                  </Flex>
-                  
-                  {/* 주말 */}
-                  <Flex gap="4" justify="center">
-                    {['토', '일'].map((day) => (
-                      <button 
-                        key={day} 
-                        className={`aspect-square w-12 h-12 rounded-full text-center cursor-pointer transition-colors flex items-center justify-center ${
-                          tempWorkDays.includes(day) 
-                            ? 'text-white' 
-                            : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                        style={{
-                          backgroundColor: tempWorkDays.includes(day) 
-                            ? 'var(--accent-9)' 
-                            : 'var(--gray-3)'
-                        }}
-                        onClick={() => handleDayToggle(day)}
-                      >
-                        <Text size="3" weight="medium">{day}</Text>
-                      </button>
-                    ))}
-                  </Flex>
-                </Flex>
+        <WorkDaysDialog
+          open={isWorkDaysDialogOpen}
+          onOpenChange={setIsWorkDaysDialogOpen}
+          selectedDays={tempWorkDays}
+          onDayToggle={handleDayToggle}
+          onWeekdaySelect={handleWeekdaySelect}
+          onWeekendSelect={handleWeekendSelect}
+          onSave={handleWorkDaysSave}
+          onCancel={handleWorkDaysCancel}
+          isAllWeekdaysSelected={isAllWeekdaysSelected}
+          isAllWeekendsSelected={isAllWeekendsSelected}
+        />
 
-                <div className="w-full h-px bg-gray-200 mt-4"></div>
+        {/* 기타 다이얼로그들 */}
+        <TimeRangeDialog
+          open={isTimeRangeDialogOpen}
+          onOpenChange={setIsTimeRangeDialogOpen}
+          currentStartTime={workConditions.workStartTime}
+          currentEndTime={workConditions.workEndTime}
+          onSave={(start, end) => {
+            setWorkConditions(prev => ({
+              ...prev,
+              workStartTime: start,
+              workEndTime: end
+            }));
+            setIsTimeRangeDialogOpen(false);
+          }}
+          onCancel={() => setIsTimeRangeDialogOpen(false)}
+        />
 
-                {/* 일괄 선택 섹션 */}
-                <Text size="2" weight="medium" className="mb-2">일괄 선택</Text>
-                
-                <Flex gap="4" justify="center">
-                  <button 
-                    className={`py-3 px-6 rounded-full text-center cursor-pointer transition-colors ${
-                      isAllWeekdaysSelected() 
-                        ? 'text-white' 
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                    style={{
-                      backgroundColor: isAllWeekdaysSelected() 
-                        ? 'var(--accent-9)' 
-                        : 'var(--gray-3)'
-                    }}
-                    onClick={handleWeekdaySelect}
-                  >
-                    <Text size="2" weight="medium">평일 전체</Text>
-                  </button>
-                  <button 
-                    className={`py-3 px-6 rounded-full text-center cursor-pointer transition-colors ${
-                      isAllWeekendsSelected() 
-                        ? 'text-white' 
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                    style={{
-                      backgroundColor: isAllWeekendsSelected() 
-                        ? 'var(--accent-9)' 
-                        : 'var(--gray-3)'
-                    }}
-                    onClick={handleWeekendSelect}
-                  >
-                    <Text size="2" weight="medium">주말 전체</Text>
-                  </button>
-                </Flex>
-              </Flex>
-              
-              <Flex gap="3" className="mt-4">
-                <Button 
-                  onClick={handleWorkDaysSave}
-                  className="flex-1"
-                >
-                  저장
-                </Button>
-                <Button 
-                  variant="outline"
-                  onClick={handleWorkDaysCancel}
-                  className="flex-1"
-                >
-                  취소
-                </Button>
-              </Flex>
-            </Flex>
-          </Dialog.Content>
-        </Dialog.Root>
+        <AvailableTimeDialog
+          open={isAvailableTimeDialogOpen}
+          onOpenChange={setIsAvailableTimeDialogOpen}
+          currentAvailableTime={workConditions.availableTime}
+          onSave={(availableTime) => {
+            setWorkConditions(prev => ({
+              ...prev,
+              availableTime
+            }));
+            setIsAvailableTimeDialogOpen(false);
+          }}
+          onCancel={() => setIsAvailableTimeDialogOpen(false)}
+        />
+
+        <AreaDialog
+          open={isAreaDialogOpen}
+          onOpenChange={setIsAreaDialogOpen}
+          currentAreas={[workConditions.workArea]}
+          onSave={(areas) => {
+            setWorkConditions(prev => ({
+              ...prev,
+              workArea: areas[0] || '전체'
+            }));
+            setIsAreaDialogOpen(false);
+          }}
+          onCancel={() => setIsAreaDialogOpen(false)}
+        />
+
+        <ServiceTypeDialog
+          open={isServiceTypeDialogOpen}
+          onOpenChange={setIsServiceTypeDialogOpen}
+          currentServiceTypes={workConditions.serviceTypes}
+          onSave={(types) => {
+            setWorkConditions(prev => ({
+              ...prev,
+              serviceTypes: types as ServiceType[]
+            }));
+            setIsServiceTypeDialogOpen(false);
+          }}
+          onCancel={() => setIsServiceTypeDialogOpen(false)}
+        />
+
+        <DurationDialog
+          open={isDurationDialogOpen}
+          onOpenChange={setIsDurationDialogOpen}
+          currentMinDuration={workConditions.workMinTime}
+          currentMaxDuration={workConditions.workMaxTime}
+          onSave={(min, max) => {
+            setWorkConditions(prev => ({
+              ...prev,
+              workMinTime: min,
+              workMaxTime: max
+            }));
+            setIsDurationDialogOpen(false);
+          }}
+          onCancel={() => setIsDurationDialogOpen(false)}
+        />
+
+        <TransportationDialog
+          open={isTransportationDialogOpen}
+          onOpenChange={setIsTransportationDialogOpen}
+          currentTransportation={workConditions.transportation}
+          onSave={(transportation) => {
+            setWorkConditions(prev => ({
+              ...prev,
+              transportation
+            }));
+            setIsTransportationDialogOpen(false);
+          }}
+          onCancel={() => setIsTransportationDialogOpen(false)}
+        />
+
+        <LunchTimeDialog
+          open={isLunchTimeDialogOpen}
+          onOpenChange={setIsLunchTimeDialogOpen}
+          currentIncluded={workConditions.lunchBreak > 0}
+          currentDuration={workConditions.lunchBreak}
+          onSave={(included, duration) => {
+            setWorkConditions(prev => ({
+              ...prev,
+              lunchBreak: included ? duration : 0
+            }));
+            setIsLunchTimeDialogOpen(false);
+          }}
+          onCancel={() => setIsLunchTimeDialogOpen(false)}
+        />
+
+        <BufferTimeDialog
+          open={isBufferTimeDialogOpen}
+          onOpenChange={setIsBufferTimeDialogOpen}
+          currentBufferTime={workConditions.bufferTime}
+          onSave={(bufferTime) => {
+            setWorkConditions(prev => ({
+              ...prev,
+              bufferTime
+            }));
+            setIsBufferTimeDialogOpen(false);
+          }}
+          onCancel={() => setIsBufferTimeDialogOpen(false)}
+        />
+
+        <CareTypeDialog
+          open={isCareTypeDialogOpen}
+          onOpenChange={setIsCareTypeDialogOpen}
+          currentDementiaCare={workConditions.supportedConditions.includes(Disease.DEMENTIA)}
+          currentBedriddenCare={workConditions.supportedConditions.includes(Disease.BEDRIDDEN)}
+          onSave={(dementiaCare, bedriddenCare) => {
+            const newConditions: Disease[] = [];
+            if (dementiaCare) newConditions.push(Disease.DEMENTIA);
+            if (bedriddenCare) newConditions.push(Disease.BEDRIDDEN);
+            
+            setWorkConditions(prev => ({
+              ...prev,
+              supportedConditions: newConditions
+            }));
+            setIsCareTypeDialogOpen(false);
+          }}
+          onCancel={() => setIsCareTypeDialogOpen(false)}
+        />
+
+        <PreferredAgeDialog
+          open={isPreferredAgeDialogOpen}
+          onOpenChange={setIsPreferredAgeDialogOpen}
+          currentMinAge={workConditions.preferredMinAge}
+          currentMaxAge={workConditions.preferredMaxAge}
+          onSave={(min, max) => {
+            setWorkConditions(prev => ({
+              ...prev,
+              preferredMinAge: min,
+              preferredMaxAge: max
+            }));
+            setIsPreferredAgeDialogOpen(false);
+          }}
+          onCancel={() => setIsPreferredAgeDialogOpen(false)}
+        />
+
+        <PreferredGenderDialog
+          open={isPreferredGenderDialogOpen}
+          onOpenChange={setIsPreferredGenderDialogOpen}
+          currentPreferredGender={workConditions.preferredGender}
+          onSave={(preferredGender) => {
+            setWorkConditions(prev => ({
+              ...prev,
+              preferredGender: preferredGender as PreferredGender
+            }));
+            setIsPreferredGenderDialogOpen(false);
+          }}
+          onCancel={() => setIsPreferredGenderDialogOpen(false)}
+        />
       </Flex>
     </Container>
   );
