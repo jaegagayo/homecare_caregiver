@@ -4,17 +4,14 @@ import {
   Flex, 
   Heading, 
   Text, 
-  Button,
   Badge,
-  Select,
-  Tabs
+  Select
 } from "@radix-ui/themes";
 import { 
   DollarSign, 
   TrendingUp, 
   Calendar, 
   Clock,
-  Filter,
   Building
 } from "lucide-react";
 
@@ -219,7 +216,7 @@ export default function InstitutionAndSettlement() {
               </div>
               
               {/* 세로 구분선 */}
-              <div className="w-px h-6 bg-gray-300 mx-4"></div>
+              <div className="w-px h-6 bg-gray-200 mx-4"></div>
               
               {/* 총 근무 시간 */}
               <div className="flex-1">
@@ -272,7 +269,7 @@ export default function InstitutionAndSettlement() {
                         <Text size="2" weight="medium">
                           {formatDate(earning.date)}
                         </Text>
-                        <Badge color={getStatusColor(earning.status) as any}>
+                        <Badge color={getStatusColor(earning.status) as 'green' | 'yellow' | 'red' | 'gray'}>
                           {getStatusText(earning.status)}
                         </Badge>
                       </Flex>

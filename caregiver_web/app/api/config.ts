@@ -36,4 +36,7 @@ export const API_ENDPOINTS = {
     GET: '/caregiver/preference',
     CREATE: '/caregiver/preference',
   },
+  SETTLEMENT: {
+    HISTORY: '/caregiver/my-page/settlement',
+  },
 } as const; 
