@@ -28,8 +28,8 @@ const getStoredCaregiverId = (): string => {
 export default function WorkConditionsPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  // 최초 생성인지 변경인지 확인
-  const isInitialSetup = searchParams.get('mode') === 'initial' || !localStorage.getItem('work_conditions_saved');
+  // 최초 생성인지 변경인지 확인 - URL 파라미터로만 판단
+  const isInitialSetup = searchParams.get('mode') === 'initial';
   
   // 기존 사용자는 세부 설정 화면부터, 신규 사용자는 자연어 입력 화면부터
   const [activeTab, setActiveTab] = useState<string>(isInitialSetup ? 'natural' : 'result');
@@ -190,16 +190,21 @@ export default function WorkConditionsPage() {
         return;
       }
 
-      await saveWorkConditions(caregiverId, workConditions);
-      
-      // 로컬 스토리지에 저장 완료 표시
-      localStorage.setItem('work_conditions_saved', 'true');
-      
       if (isInitialSetup) {
-        // 최초 생성인 경우: 승인 대기 페이지로 이동
+        // 회원가입 시에만 API 호출
+        await saveWorkConditions(caregiverId, workConditions);
+        // 로컬 스토리지에 저장 완료 표시
+        localStorage.setItem('work_conditions_saved', 'true');
+        // 승인 대기 페이지로 이동
         navigate("/main/approval-waiting");
       } else {
-        // 변경인 경우: 메인 페이지로 돌아가기
+        // 마이페이지에서 수정 시에는 API 호출하지 않음
+        // 개발용 안내 문구 표시
+        alert('개발용 안내: 마이페이지 수정 시에는 백엔드 API가 호출되지 않습니다. 백엔드 팀에서 수정용 API 개발 완료 시 연동 예정입니다.');
+        
+        // 로컬 스토리지에 저장 완료 표시
+        localStorage.setItem('work_conditions_saved', 'true');
+        // 메인 페이지로 돌아가기
         navigate("/main/home");
       }
     } catch (err) {
