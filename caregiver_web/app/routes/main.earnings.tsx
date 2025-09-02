@@ -16,6 +16,7 @@ import {
   Clock,
   Filter
 } from "lucide-react";
+import { getServiceTypeKorean } from "../utils";
 
 interface Earnings {
   id: string;
@@ -61,7 +62,7 @@ export default function EarningsPage() {
           id: "1",
           date: "2024-01-15",
           clientName: "김영희",
-          serviceType: "방문요양",
+          serviceType: "VISITING_CARE",
           duration: 2,
           hourlyRate: 15000,
           totalAmount: 30000,
@@ -71,7 +72,7 @@ export default function EarningsPage() {
           id: "2",
           date: "2024-01-14",
           clientName: "박철수",
-          serviceType: "방문요양",
+          serviceType: "VISITING_CARE",
           duration: 3,
           hourlyRate: 15000,
           totalAmount: 45000,
@@ -81,7 +82,7 @@ export default function EarningsPage() {
           id: "3",
           date: "2024-01-13",
           clientName: "이순자",
-          serviceType: "방문요양",
+          serviceType: "VISITING_CARE",
           duration: 2,
           hourlyRate: 15000,
           totalAmount: 30000,
@@ -91,7 +92,7 @@ export default function EarningsPage() {
           id: "4",
           date: "2024-01-12",
           clientName: "최민수",
-          serviceType: "방문요양",
+          serviceType: "VISITING_CARE",
           duration: 4,
           hourlyRate: 15000,
           totalAmount: 60000,
@@ -101,7 +102,7 @@ export default function EarningsPage() {
           id: "5",
           date: "2024-01-11",
           clientName: "정영수",
-          serviceType: "방문요양",
+          serviceType: "VISITING_CARE",
           duration: 2,
           hourlyRate: 15000,
           totalAmount: 30000,
@@ -278,7 +279,7 @@ export default function EarningsPage() {
                         <Clock size={16} className="text-gray-500" />
                         <Text size="2">{earning.duration}시간</Text>
                       </Flex>
-                      <Text size="1" color="gray">{earning.serviceType}</Text>
+                      <Text size="1" color="gray">{getServiceTypeKorean(earning.serviceType)}</Text>
                     </Flex>
                     <Flex direction="column" align="end" gap="1">
                       <Text size="3" weight="bold">

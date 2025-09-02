@@ -1,7 +1,7 @@
 import { Flex, Text, Badge, Card } from '@radix-ui/themes';
 import { Calendar, Clock } from 'lucide-react';
 import { CaregiverScheduleDetailResponse } from '../../../types';
-import { getStatusColor, getStatusText } from '../../../utils';
+import { getMatchStatusColor, getMatchStatusKorean } from '../../../utils';
 
 interface ApplicantInfoCardProps {
   schedule: CaregiverScheduleDetailResponse;
@@ -30,8 +30,8 @@ export default function ApplicantInfoCard({ schedule }: ApplicantInfoCardProps) 
         {/* 신청자 이름과 상태 정보 */}
         <Flex justify="between" align="center">
           <Text size="4" weight="bold">{schedule.consumerName} 님</Text>
-          <Badge color={getStatusColor(schedule.matchStatus) as 'orange' | 'red' | 'blue' | 'green' | 'gray'}>
-            {getStatusText(schedule.matchStatus)}
+          <Badge color={getMatchStatusColor(schedule.matchStatus) as 'orange' | 'red' | 'blue' | 'green' | 'gray' | 'yellow'}>
+            {getMatchStatusKorean(schedule.matchStatus)}
           </Badge>
         </Flex>
 

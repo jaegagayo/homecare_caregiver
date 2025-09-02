@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { formatTime, calculateDuration } from "../../utils/formatters";
 import { CaregiverScheduleResponse } from "../../types";
+import { getMatchStatusColor, getMatchStatusKorean } from "../../utils";
 
 interface ScheduleListProps {
   schedules: CaregiverScheduleResponse[];
@@ -97,7 +98,7 @@ export default function ScheduleList({
                     <>
                       {getStatusColor && getStatusText ? (
                         <Badge 
-                          color={getStatusColor(schedule.matchStatus) as "blue" | "green" | "red" | "gray"}
+                          color={getStatusColor(schedule.matchStatus) as "blue" | "green" | "red" | "gray" | "yellow"}
                           className="text-xs"
                         >
                           {getStatusText(schedule.matchStatus)}

@@ -1,6 +1,7 @@
 import { Dialog, Flex, Text, Button } from "@radix-ui/themes";
 import { X } from "lucide-react";
 import { DayOfWeek } from "../../types/workConditions";
+import { getDayOfWeekKorean } from "../../utils";
 
 interface WorkDaysDialogProps {
   open: boolean;
@@ -27,17 +28,6 @@ export default function WorkDaysDialog({
   isAllWeekdaysSelected,
   isAllWeekendsSelected
 }: WorkDaysDialogProps) {
-  // DayOfWeek enum을 한글로 표시하는 매핑
-  const dayDisplayMap: Record<DayOfWeek, string> = {
-    [DayOfWeek.MONDAY]: '월',
-    [DayOfWeek.TUESDAY]: '화',
-    [DayOfWeek.WEDNESDAY]: '수',
-    [DayOfWeek.THURSDAY]: '목',
-    [DayOfWeek.FRIDAY]: '금',
-    [DayOfWeek.SATURDAY]: '토',
-    [DayOfWeek.SUNDAY]: '일'
-  };
-
   const weekdays = [DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY];
   const weekends = [DayOfWeek.SATURDAY, DayOfWeek.SUNDAY];
 
@@ -80,7 +70,7 @@ export default function WorkDaysDialog({
                     }}
                     onClick={() => onDayToggle(day)}
                   >
-                    <Text size="3" weight="medium">{dayDisplayMap[day]}</Text>
+                    <Text size="3" weight="medium">{getDayOfWeekKorean(day)}</Text>
                   </button>
                 ))}
               </Flex>
@@ -102,7 +92,7 @@ export default function WorkDaysDialog({
                     }}
                     onClick={() => onDayToggle(day)}
                   >
-                    <Text size="3" weight="medium">{dayDisplayMap[day]}</Text>
+                    <Text size="3" weight="medium">{getDayOfWeekKorean(day)}</Text>
                   </button>
                 ))}
               </Flex>
@@ -138,7 +128,7 @@ export default function WorkDaysDialog({
             <Text size="2" weight="medium" className="mb-2">선택된 요일</Text>
             <Text size="2" color="gray">
               {selectedDays.length > 0 
-                ? selectedDays.map(day => dayDisplayMap[day]).join(', ')
+                ? selectedDays.map(day => getDayOfWeekKorean(day)).join(', ')
                 : '선택된 요일이 없습니다.'
               }
             </Text>

@@ -20,6 +20,7 @@ import {
   CaregiverCenterSettlementResponse,
   SettlementByCaregiverResponse
 } from "../../types";
+import { getMatchStatusColor, getMatchStatusKorean } from "../../utils";
 
 // 정산 요약 데이터 타입
 interface SettlementOverview {
@@ -157,11 +158,13 @@ export default function InstitutionAndSettlement() {
     loadData();
   }, []);
 
-  const getStatusColor = (isPaid: boolean) => {
+  // 정산 상태에 따른 색상 반환
+  const getStatusColor = (isPaid: boolean): string => {
     return isPaid ? 'green' : 'yellow';
   };
 
-  const getStatusText = (isPaid: boolean) => {
+  // 정산 상태에 따른 텍스트 반환
+  const getStatusText = (isPaid: boolean): string => {
     return isPaid ? '완료' : '대기';
   };
 

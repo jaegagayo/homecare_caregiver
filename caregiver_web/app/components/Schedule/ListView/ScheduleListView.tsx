@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from '@remix-run/react';
 import { Flex, Select, Text, Heading } from '@radix-ui/themes';
 import { ScheduleList } from '../../Common';
-import { getStatusColor, getStatusText } from '../../../utils/scheduleStatus';
+import { getMatchStatusColor, getMatchStatusKorean } from '../../../utils';
 import { CaregiverScheduleResponse } from '../../../types';
 
 interface ScheduleListViewProps {
@@ -148,8 +148,8 @@ export default function ScheduleListView({ schedules }: ScheduleListViewProps) {
                 <ScheduleList
                   schedules={daySchedules}
                   showStatus={true}
-                  getStatusColor={getStatusColor}
-                  getStatusText={getStatusText}
+                  getStatusColor={getMatchStatusColor}
+                  getStatusText={getMatchStatusKorean}
                   onClickSchedule={handleScheduleClick}
                 />
               </div>

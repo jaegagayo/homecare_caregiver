@@ -18,6 +18,7 @@ import {
   ChevronRight,
   X
 } from "lucide-react";
+import { getServiceTypeKorean } from "../../utils";
 
 interface Review {
   id: string;
@@ -60,7 +61,7 @@ export default function ReviewManagement() {
           id: "1",
           date: "2024-01-15",
           clientName: "김영희",
-          serviceType: "방문요양",
+          serviceType: "VISITING_CARE",
           startTime: "09:00",
           endTime: "11:00",
           duration: 2,
@@ -72,7 +73,7 @@ export default function ReviewManagement() {
           id: "2",
           date: "2024-01-14",
           clientName: "박철수",
-          serviceType: "방문요양",
+          serviceType: "VISITING_CARE",
           startTime: "14:00",
           endTime: "17:00",
           duration: 3,
@@ -84,7 +85,7 @@ export default function ReviewManagement() {
           id: "3",
           date: "2024-01-13",
           clientName: "이순자",
-          serviceType: "방문요양",
+          serviceType: "VISITING_CARE",
           startTime: "10:00",
           endTime: "12:00",
           duration: 2,
@@ -96,7 +97,7 @@ export default function ReviewManagement() {
           id: "4",
           date: "2024-01-12",
           clientName: "최민수",
-          serviceType: "방문요양",
+          serviceType: "VISITING_CARE",
           startTime: "15:00",
           endTime: "19:00",
           duration: 4,
@@ -108,7 +109,7 @@ export default function ReviewManagement() {
           id: "5",
           date: "2024-01-11",
           clientName: "정영수",
-          serviceType: "방문요양",
+          serviceType: "VISITING_CARE",
           startTime: "08:00",
           endTime: "10:00",
           duration: 2,
@@ -250,7 +251,7 @@ export default function ReviewManagement() {
                           {formatDate(review.date)}
                         </Text>
                         <Badge color="blue">
-                          {review.scheduleSummary}
+                          {getServiceTypeKorean(review.serviceType)} 서비스 - {review.duration}시간
                         </Badge>
                       </Flex>
                       
@@ -329,7 +330,7 @@ export default function ReviewManagement() {
                   </Flex>
                   
                   <Badge color="blue">
-                    {selectedReview.scheduleSummary}
+                    {getServiceTypeKorean(selectedReview.serviceType)} 서비스 - {selectedReview.duration}시간
                   </Badge>
                   
                   <Flex align="center" gap="2">

@@ -1,5 +1,7 @@
-import { Flex, Text, Button } from '@radix-ui/themes';
-import { CaregiverScheduleResponse } from '../../../types';
+import { Flex, Text, Button, Heading } from "@radix-ui/themes";
+import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import { CaregiverScheduleResponse } from "../../../types";
+import { getMatchStatusKorean } from "../../../utils";
 
 interface ScheduleHeaderProps {
   currentWeek: Date;
@@ -54,13 +56,7 @@ export default function ScheduleHeader({ currentWeek, currentDayIndex, schedules
   const completedCount = currentWeekSchedules.filter(s => s.matchStatus === 'COMPLETED').length;
   const totalEarnings = currentWeekSchedules
     .filter(s => s.matchStatus === 'COMPLETED')
-    .reduce((total, s) => {
-      // 시간 계산
-      const startTime = new Date(s.serviceStartTime);
-      const endTime = new Date(s.serviceEndTime);
-      const durationHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
-      return total + (durationHours * 15000); // 기본 시급 15,000원
-    }, 0);
+    .reduce((sum, s) => sum + (s.hourlyRate * s.duration), 0);
 
   return (
     <Flex direction="column" gap="3" style={{ flexShrink: 0, marginBottom: '16px', paddingTop: '4px' }}>

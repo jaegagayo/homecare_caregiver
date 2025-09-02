@@ -1,5 +1,6 @@
 import { Flex, Text, Button, Heading } from "@radix-ui/themes";
 import { WorkConditions, DayOfWeek } from "../../../types/workConditions";
+import { getDayOfWeekKorean } from "../../../utils";
 import {
   ConditionItem,
   TimeRangeSelector,
@@ -55,17 +56,6 @@ export default function DetailSettingsForm({
   onSave,
   onBackToNatural
 }: DetailSettingsFormProps) {
-  // DayOfWeek enum을 한글로 표시하는 매핑
-  const dayDisplayMap: Record<DayOfWeek, string> = {
-    [DayOfWeek.MONDAY]: '월',
-    [DayOfWeek.TUESDAY]: '화',
-    [DayOfWeek.WEDNESDAY]: '수',
-    [DayOfWeek.THURSDAY]: '목',
-    [DayOfWeek.FRIDAY]: '금',
-    [DayOfWeek.SATURDAY]: '토',
-    [DayOfWeek.SUNDAY]: '일'
-  };
-
   return (
     <Flex direction="column" gap="4">
       <div className="mb-2">
@@ -84,7 +74,7 @@ export default function DetailSettingsForm({
         {/* 근무 가능 요일 섹션 */}
         <ConditionItem
           label="근무 가능 요일"
-          value={workConditions.dayOfWeek.map(day => dayDisplayMap[day]).join(', ')}
+          value={workConditions.dayOfWeek.map(day => getDayOfWeekKorean(day)).join(', ')}
           onClick={onWorkDaysClick}
         />
 

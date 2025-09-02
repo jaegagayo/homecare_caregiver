@@ -13,6 +13,7 @@ import {
   User,
   MapPin
 } from "lucide-react";
+import { getServiceTypeKorean, getDayOfWeekKorean } from "../utils";
 
 interface RegularProposal {
   id: string;
@@ -139,7 +140,9 @@ export default function RegularProposalDetailPage() {
             <Flex direction="column" gap="4">
               <Flex justify="between" align="center">
                 <Text size="2" weight="medium">서비스 유형</Text>
-                <Badge color="blue">{proposal.serviceType}</Badge>
+                <Badge color="blue" className="text-sm">
+                  {getServiceTypeKorean(proposal.serviceType)}
+                </Badge>
               </Flex>
               <div className="w-full h-px bg-gray-200"></div>
               <Flex justify="between" align="center">
@@ -154,7 +157,9 @@ export default function RegularProposalDetailPage() {
               <div className="w-full h-px bg-gray-200"></div>
               <Flex justify="between" align="center">
                 <Text size="2" weight="medium">서비스 요일</Text>
-                <Text size="2">{proposal.dayOfWeek}</Text>
+                <Text size="2" color="gray">
+                  {proposal.dayOfWeek.map(day => getDayOfWeekKorean(day)).join(', ')}요일
+                </Text>
               </Flex>
               <div className="w-full h-px bg-gray-200"></div>
               <Flex justify="between" align="center">

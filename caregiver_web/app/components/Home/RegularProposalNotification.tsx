@@ -8,6 +8,7 @@ import {
 } from "@radix-ui/themes";
 import { Info, Calendar, User, ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import { RecurringOfferSummaryResponse } from "../../types";
+import { getDayOfWeekKorean } from "../../utils";
 
 interface RegularProposalNotificationProps {
   proposals: RecurringOfferSummaryResponse[];
@@ -43,7 +44,7 @@ export default function RegularProposalNotification({ proposals }: RegularPropos
   const periodString = `${currentProposal.serviceStartDate} ~ ${currentProposal.serviceEndDate}`;
   
   // 요일 문자열 생성
-  const dayOfWeekString = currentProposal.dayOfWeek.join(', ');
+  const dayOfWeekString = currentProposal.dayOfWeek.map(day => getDayOfWeekKorean(day)).join(', ');
   
   // 시간대 문자열 생성
   const timeSlotString = `${currentProposal.serviceStartTime} - ${currentProposal.serviceEndTime}`;

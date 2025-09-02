@@ -15,6 +15,7 @@ import { ScheduleList, WarningCard } from "../components/Common";
 import { formatToday } from "../utils/formatters";
 import { getHomeData } from "../api/home";
 import { HomeData } from "../types";
+import { getMatchStatusColor, getMatchStatusKorean } from "../utils";
 
 export default function HomePage() {
   const [homeData, setHomeData] = useState<HomeData | null>(null);
@@ -44,25 +45,8 @@ export default function HomePage() {
     loadHomeData();
   }, []);
 
-  const getStatusColor = (matchStatus: string) => {
-    switch (matchStatus) {
-      case 'CONFIRMED': return 'blue';
-      case 'COMPLETED': return 'green';
-      case 'CANCELLED': return 'red';
-      case 'PENDING': return 'yellow';
-      default: return 'gray';
-    }
-  };
-
-  const getStatusText = (matchStatus: string) => {
-    switch (matchStatus) {
-      case 'CONFIRMED': return '예정';
-      case 'COMPLETED': return '완료';
-      case 'CANCELLED': return '취소';
-      case 'PENDING': return '대기';
-      default: return '알 수 없음';
-    }
-  };
+  const getStatusColor = getMatchStatusColor;
+  const getStatusText = getMatchStatusKorean;
 
   const calculateTimeRemaining = (startTime: string) => {
     // "09:00" 형태에서 시간 추출

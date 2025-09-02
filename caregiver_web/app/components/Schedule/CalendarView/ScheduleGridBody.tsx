@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, forwardRef } from 'react';
 import { useNavigate } from '@remix-run/react';
 import { CaregiverScheduleResponse } from '../../../types';
+import { getMatchStatusColor } from '../../../utils';
 
 interface ScheduleGridBodyProps {
   schedules: CaregiverScheduleResponse[];
@@ -366,14 +367,7 @@ const ScheduleGridBody = forwardRef<HTMLDivElement, ScheduleGridBodyProps>(({ sc
     return `${day}(${weekday})`; // 모바일용으로 축약
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'CONFIRMED': return 'blue';
-      case 'COMPLETED': return 'green';
-      case 'CANCELLED': return 'red';
-      default: return 'gray';
-    }
-  };
+
 
   return (
     <div style={{
@@ -494,7 +488,7 @@ const ScheduleGridBody = forwardRef<HTMLDivElement, ScheduleGridBodyProps>(({ sc
                 {/* 스케줄 블록 오버레이 */}
                 {getSchedulesForDate(date).map((schedule, idx) => {
                   const { top, height } = calculateSchedulePosition(schedule.serviceStartTime, schedule.serviceEndTime);
-                  const statusColor = getStatusColor(schedule.matchStatus);
+                  const statusColor = getMatchStatusColor(schedule.matchStatus);
                   return (
                     <button
                       key={idx}
