@@ -5,122 +5,150 @@ import {
   Heading, 
   Text, 
   Badge,
-  Select
+  Select,
+  Separator
 } from "@radix-ui/themes";
 import { 
   DollarSign, 
   TrendingUp, 
   Calendar, 
   Clock,
-  Building
+  Building,
+  MapPin
 } from "lucide-react";
+import {
+  CaregiverCenterSettlementResponse,
+  SettlementByCaregiverResponse
+} from "../../types";
 
-interface Earnings {
-  id: string;
-  date: string;
-  clientName: string;
-  serviceType: string;
-  duration: number;
-  hourlyRate: number;
+// 정산 요약 데이터 타입
+interface SettlementOverview {
   totalAmount: number;
-  status: 'completed' | 'pending' | 'cancelled';
-}
-
-interface EarningsSummary {
-  total: number;
-  thisWeek: number;
-  thisMonth: number;
-  lastMonth: number;
-  averagePerDay: number;
+  completedCount: number;
+  plannedCount: number;
   totalHours: number;
+  totalDistance: number;
 }
 
 export default function InstitutionAndSettlement() {
-  const [earnings, setEarnings] = useState<Earnings[]>([]);
-  const [summary, setSummary] = useState<EarningsSummary>({
-    total: 0,
-    thisWeek: 0,
-    thisMonth: 0,
-    lastMonth: 0,
-    averagePerDay: 0,
-    totalHours: 0
+  const [settlementData, setSettlementData] = useState<CaregiverCenterSettlementResponse[]>([]);
+  const [summary, setSummary] = useState<SettlementOverview>({
+    totalAmount: 0,
+    completedCount: 0,
+    plannedCount: 0,
+    totalHours: 0,
+    totalDistance: 0
   });
   const [selectedPeriod, setSelectedPeriod] = useState<string>('thisMonth');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // 더미 데이터 로드
+    // 더미 데이터 로드 (나중에 실제 API로 교체 예정)
     const loadData = async () => {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      const dummyEarnings: Earnings[] = [
+      // 백엔드 구조에 맞는 더미 데이터
+      const dummySettlementData: CaregiverCenterSettlementResponse[] = [
         {
-          id: "1",
-          date: "2024-01-15",
-          clientName: "김영희",
-          serviceType: "방문요양",
-          duration: 2,
-          hourlyRate: 15000,
-          totalAmount: 30000,
-          status: "completed"
+          centerName: "행복요양센터",
+          settlements: [
+            {
+              centerName: "행복요양센터",
+              settlementId: "1",
+              caregiverName: "김영희",
+              serviceDate: "2024-01-15",
+              serviceStartTime: "09:00:00",
+              serviceEndTime: "11:00:00",
+              settlementAmount: 30000,
+              distanceLog: 5.2,
+              isPaid: true
+            },
+            {
+              centerName: "행복요양센터",
+              settlementId: "2",
+              caregiverName: "박철수",
+              serviceDate: "2024-01-14",
+              serviceStartTime: "14:00:00",
+              serviceEndTime: "17:00:00",
+              settlementAmount: 45000,
+              distanceLog: 8.1,
+              isPaid: true
+            },
+            {
+              centerName: "행복요양센터",
+              settlementId: "3",
+              caregiverName: "이순자",
+              serviceDate: "2024-01-13",
+              serviceStartTime: "10:00:00",
+              serviceEndTime: "12:00:00",
+              settlementAmount: 30000,
+              distanceLog: 3.8,
+              isPaid: false
+            }
+          ]
         },
         {
-          id: "2",
-          date: "2024-01-14",
-          clientName: "박철수",
-          serviceType: "방문요양",
-          duration: 3,
-          hourlyRate: 15000,
-          totalAmount: 45000,
-          status: "completed"
+          centerName: "사랑요양센터",
+          settlements: [
+            {
+              centerName: "사랑요양센터",
+              settlementId: "4",
+              caregiverName: "최민수",
+              serviceDate: "2024-01-12",
+              serviceStartTime: "13:00:00",
+              serviceEndTime: "17:00:00",
+              settlementAmount: 60000,
+              distanceLog: 12.5,
+              isPaid: true
+            },
+            {
+              centerName: "사랑요양센터",
+              settlementId: "5",
+              caregiverName: "정영수",
+              serviceDate: "2024-01-11",
+              serviceStartTime: "08:00:00",
+              serviceEndTime: "10:00:00",
+              settlementAmount: 30000,
+              distanceLog: 4.2,
+              isPaid: false
+            }
+          ]
         },
         {
-          id: "3",
-          date: "2024-01-13",
-          clientName: "이순자",
-          serviceType: "방문요양",
-          duration: 2,
-          hourlyRate: 15000,
-          totalAmount: 30000,
-          status: "completed"
-        },
-        {
-          id: "4",
-          date: "2024-01-12",
-          clientName: "최민수",
-          serviceType: "방문요양",
-          duration: 4,
-          hourlyRate: 15000,
-          totalAmount: 60000,
-          status: "completed"
-        },
-        {
-          id: "5",
-          date: "2024-01-11",
-          clientName: "정영수",
-          serviceType: "방문요양",
-          duration: 2,
-          hourlyRate: 15000,
-          totalAmount: 30000,
-          status: "pending"
+          centerName: "희망요양센터",
+          settlements: [
+            {
+              centerName: "희망요양센터",
+              settlementId: "6",
+              caregiverName: "한미라",
+              serviceDate: "2024-01-10",
+              serviceStartTime: "15:00:00",
+              serviceEndTime: "18:00:00",
+              settlementAmount: 45000,
+              distanceLog: 6.8,
+              isPaid: true
+            }
+          ]
         }
       ];
 
-      setEarnings(dummyEarnings);
+      setSettlementData(dummySettlementData);
 
       // 요약 계산
-      const completedEarnings = dummyEarnings.filter(e => e.status === 'completed');
-      const totalAmount = completedEarnings.reduce((sum, e) => sum + e.totalAmount, 0);
-      const totalHours = completedEarnings.reduce((sum, e) => sum + e.duration, 0);
+      const allSettlements = dummySettlementData.flatMap(center => center.settlements);
+      const totalAmount = allSettlements.reduce((sum, s) => sum + s.settlementAmount, 0);
+      const completedCount = allSettlements.filter(s => s.isPaid).length;
+      const plannedCount = allSettlements.filter(s => !s.isPaid).length;
+      const totalHours = allSettlements.reduce((sum, s) => sum + calculateDuration(s.serviceStartTime, s.serviceEndTime), 0);
+      const totalDistance = allSettlements.reduce((sum, s) => sum + s.distanceLog, 0);
 
       setSummary({
-        total: totalAmount,
-        thisWeek: totalAmount * 0.4, // 더미 데이터
-        thisMonth: totalAmount * 0.8,
-        lastMonth: totalAmount * 0.7,
-        averagePerDay: totalAmount / completedEarnings.length,
-        totalHours
+        totalAmount,
+        completedCount,
+        plannedCount,
+        totalHours,
+        totalDistance
       });
 
       setIsLoading(false);
@@ -129,30 +157,24 @@ export default function InstitutionAndSettlement() {
     loadData();
   }, []);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'green';
-      case 'pending': return 'yellow';
-      case 'cancelled': return 'red';
-      default: return 'gray';
-    }
+  const getStatusColor = (isPaid: boolean) => {
+    return isPaid ? 'green' : 'yellow';
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'completed': return '완료';
-      case 'pending': return '대기';
-      case 'cancelled': return '취소';
-      default: return '알 수 없음';
-    }
+  const getStatusText = (isPaid: boolean) => {
+    return isPaid ? '완료' : '대기';
   };
 
-  const filteredEarnings = earnings.filter(earning => {
-    if (selectedStatus !== 'all' && earning.status !== selectedStatus) {
-      return false;
-    }
-    return true;
-  });
+  const filteredSettlementData = settlementData.map(center => ({
+    ...center,
+    settlements: center.settlements.filter(settlement => {
+      if (selectedStatus !== 'all') {
+        if (selectedStatus === 'completed' && !settlement.isPaid) return false;
+        if (selectedStatus === 'pending' && settlement.isPaid) return false;
+      }
+      return true;
+    })
+  })).filter(center => center.settlements.length > 0);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -161,6 +183,27 @@ export default function InstitutionAndSettlement() {
       month: 'long',
       day: 'numeric'
     });
+  };
+
+  const formatTime = (timeString: string) => {
+    return timeString.substring(0, 5); // HH:MM 형식으로 변환
+  };
+
+  const calculateDuration = (startTime: string, endTime: string) => {
+    const start = new Date(`2000-01-01T${startTime}`);
+    const end = new Date(`2000-01-01T${endTime}`);
+    const diffMs = end.getTime() - start.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+    return Math.round(diffHours * 10) / 10; // 소수점 첫째자리까지
+  };
+
+  const calculateCenterSummary = (settlements: SettlementByCaregiverResponse[]) => {
+    const totalAmount = settlements.reduce((sum, s) => sum + s.settlementAmount, 0);
+    const completedCount = settlements.filter(s => s.isPaid).length;
+    const totalHours = settlements.reduce((sum, s) => sum + calculateDuration(s.serviceStartTime, s.serviceEndTime), 0);
+    const totalDistance = settlements.reduce((sum, s) => sum + s.distanceLog, 0);
+    
+    return { totalAmount, completedCount, totalHours, totalDistance };
   };
 
   if (isLoading) {
@@ -182,56 +225,59 @@ export default function InstitutionAndSettlement() {
           </Text>
         </Flex>
 
-        {/* 수익 요약 */}
+        {/* 전체 요약 */}
         <div>
-          <Heading size="4" className="mb-4">이번 달 요약</Heading>
+          <Heading size="4" className="mb-4">전체 요약</Heading>
           
-          {/* 이번 달 정산 예정 카드 */}
+          {/* 전체 정산 현황 카드 */}
           <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4 shadow-sm">
             <Flex align="center" justify="between">
-              <Text size="2" color="gray">정산 예정</Text>
-                <Flex align="center" gap="2">
-                  <Text size="5" weight="bold" style={{ color: 'var(--accent-9)' }}>
-                    ₩{summary.thisMonth.toLocaleString()}
-                  </Text>
-                  <Text size="2" className="text-accent-8 flex items-center gap-1">
-                    <TrendingUp size={12} />
-                    지난 달 대비 +15%
-                  </Text>
-                </Flex>
+              <Text size="2" color="gray">총 정산 금액</Text>
+              <Flex align="center" gap="2">
+                <Text size="5" weight="bold" style={{ color: 'var(--accent-9)' }}>
+                  ₩{summary.totalAmount.toLocaleString()}
+                </Text>
+                <Text size="2" className="text-accent-8 flex items-center gap-1">
+                  <TrendingUp size={12} />
+                  완료: {summary.completedCount}건, 대기: {summary.plannedCount}건
+                </Text>
+              </Flex>
             </Flex>
           </div>
 
-          {/* 시급 및 근무 시간 카드 */}
-          <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-            <Flex align="center" justify="between">
-              {/* 평균 시급 */}
-              <div className="flex-1">
-                <Flex align="center" justify="between">
-                  <Text size="2" color="gray">평균 시급</Text>
-                  <Text size="4" weight="bold">
-                    ₩{Math.round(summary.thisMonth / summary.totalHours).toLocaleString()}
-                  </Text>
-                </Flex>
-              </div>
-              
-              {/* 세로 구분선 */}
-              <div className="w-px h-6 bg-gray-200 mx-4"></div>
-              
-              {/* 총 근무 시간 */}
-              <div className="flex-1">
-                <Flex align="center" justify="between">
-                  <Text size="2" color="gray">총 근무 시간</Text>
-                  <Text size="4" weight="bold">
-                    {summary.totalHours}시간
-                  </Text>
-                </Flex>
-              </div>
-            </Flex>
+          {/* 통계 카드들 */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+              <Flex direction="column" gap="1">
+                <Text size="1" color="gray">총 근무 시간</Text>
+                <Text size="3" weight="bold">{summary.totalHours}시간</Text>
+              </Flex>
+            </div>
+            
+            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+              <Flex direction="column" gap="1">
+                <Text size="1" color="gray">총 이동 거리</Text>
+                <Text size="3" weight="bold">{summary.totalDistance.toFixed(1)}km</Text>
+              </Flex>
+            </div>
+            
+            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+              <Flex direction="column" gap="1">
+                <Text size="1" color="gray">정산 완료</Text>
+                <Text size="3" weight="bold">{summary.completedCount}건</Text>
+              </Flex>
+            </div>
+            
+            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+              <Flex direction="column" gap="1">
+                <Text size="1" color="gray">정산 대기</Text>
+                <Text size="3" weight="bold">{summary.plannedCount}건</Text>
+              </Flex>
+            </div>
           </div>
         </div>
 
-        {/* 정산 내역 */}
+        {/* 필터 */}
         <div>
           <Flex justify="between" align="center" className="mb-4">
             <Heading size="4">정산 내역</Heading>
@@ -252,48 +298,80 @@ export default function InstitutionAndSettlement() {
                   <Select.Item value="all">전체</Select.Item>
                   <Select.Item value="completed">완료</Select.Item>
                   <Select.Item value="pending">대기</Select.Item>
-                  <Select.Item value="cancelled">취소</Select.Item>
                 </Select.Content>
               </Select.Root>
             </Flex>
           </Flex>
           
-          {filteredEarnings.length > 0 ? (
-            <Flex direction="column" gap="3">
-              {filteredEarnings.map((earning) => (
-                <div key={earning.id} className="bg-white border border-gray-200 rounded-lg p-4">
-                  <Flex justify="between" align="start" gap="3">
-                    <Flex direction="column" gap="2" className="flex-1">
-                      <Flex align="center" gap="2">
-                        <Calendar size={16} className="text-gray-500" />
-                        <Text size="2" weight="medium">
-                          {formatDate(earning.date)}
-                        </Text>
-                        <Badge color={getStatusColor(earning.status) as 'green' | 'yellow' | 'red' | 'gray'}>
-                          {getStatusText(earning.status)}
-                        </Badge>
+          {filteredSettlementData.length > 0 ? (
+            <Flex direction="column" gap="6">
+              {filteredSettlementData.map((center, centerIndex) => {
+                const centerSummary = calculateCenterSummary(center.settlements);
+                
+                return (
+                  <div key={centerIndex} className="bg-white border border-gray-200 rounded-lg shadow-sm">
+                    {/* 센터 헤더 */}
+                    <div className="p-4 border-b border-gray-100 bg-gray-50">
+                      <Flex justify="between" align="center">
+                        <Flex align="center" gap="2">
+                          <Building size={20} className="text-blue-600" />
+                          <Heading size="3">{center.centerName}</Heading>
+                        </Flex>
+                        <Flex gap="4" className="text-sm text-gray-600">
+                          <Text>총 {center.settlements.length}건</Text>
+                          <Text>₩{centerSummary.totalAmount.toLocaleString()}</Text>
+                          <Text>{centerSummary.totalHours}시간</Text>
+                        </Flex>
                       </Flex>
-                      <Flex align="center" gap="2">
-                        <Building size={16} className="text-gray-500" />
-                        <Text size="2">{earning.clientName}</Text>
+                    </div>
+                    
+                    {/* 센터별 정산 내역 */}
+                    <div className="p-4">
+                      <Flex direction="column" gap="3">
+                        {center.settlements.map((settlement) => (
+                          <div key={settlement.settlementId} className="border border-gray-100 rounded-lg p-3 hover:bg-gray-50">
+                            <Flex justify="between" align="start" gap="3">
+                              <Flex direction="column" gap="2" className="flex-1">
+                                <Flex align="center" gap="2">
+                                  <Calendar size={16} className="text-gray-500" />
+                                  <Text size="2" weight="medium">
+                                    {formatDate(settlement.serviceDate)}
+                                  </Text>
+                                  <Badge color={getStatusColor(settlement.isPaid) as 'green' | 'yellow'}>
+                                    {getStatusText(settlement.isPaid)}
+                                  </Badge>
+                                </Flex>
+                                
+                                <Flex align="center" gap="2">
+                                  <Clock size={16} className="text-gray-500" />
+                                  <Text size="2">
+                                    {formatTime(settlement.serviceStartTime)} - {formatTime(settlement.serviceEndTime)} 
+                                    ({calculateDuration(settlement.serviceStartTime, settlement.serviceEndTime)}시간)
+                                  </Text>
+                                </Flex>
+                                
+                                <Flex align="center" gap="2">
+                                  <MapPin size={16} className="text-gray-500" />
+                                  <Text size="2" color="gray">이동 거리: {settlement.distanceLog}km</Text>
+                                </Flex>
+                              </Flex>
+                              
+                              <Flex direction="column" align="end" gap="1">
+                                <Text size="3" weight="bold">
+                                  ₩{settlement.settlementAmount.toLocaleString()}
+                                </Text>
+                                <Text size="1" color="gray">
+                                  {calculateDuration(settlement.serviceStartTime, settlement.serviceEndTime)}시간 근무
+                                </Text>
+                              </Flex>
+                            </Flex>
+                          </div>
+                        ))}
                       </Flex>
-                      <Flex align="center" gap="2">
-                        <Clock size={16} className="text-gray-500" />
-                        <Text size="2">{earning.duration}시간</Text>
-                      </Flex>
-                      <Text size="1" color="gray">{earning.serviceType}</Text>
-                    </Flex>
-                    <Flex direction="column" align="end" gap="1">
-                      <Text size="3" weight="bold">
-                        ₩{earning.totalAmount.toLocaleString()}
-                      </Text>
-                      <Text size="1" color="gray">
-                        ₩{earning.hourlyRate.toLocaleString()}/시간
-                      </Text>
-                    </Flex>
-                  </Flex>
-                </div>
-              ))}
+                    </div>
+                  </div>
+                );
+              })}
             </Flex>
           ) : (
             <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
