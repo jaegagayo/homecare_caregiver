@@ -49,15 +49,15 @@ export interface WorkConditions {
   dayOfWeek: DayOfWeek[];
   
   // 근무 시간 (백엔드: LocalTime)
-  workStartTime: string; // "HH:mm:ss" 형식
-  workEndTime: string;   // "HH:mm:ss" 형식
+  workStartTime: string | null; // "HH:mm:ss" 형식
+  workEndTime: string | null;   // "HH:mm:ss" 형식
   
   // 근무 시간 (분 단위, 백엔드: Integer)
-  workMinTime: number;   // 최소 근무 시간 (분)
-  workMaxTime: number;   // 최대 근무 시간 (분)
+  workMinTime: number | null;   // 최소 근무 시간 (분)
+  workMaxTime: number | null;   // 최대 근무 시간 (분)
   
   // 이동 가능 시간 (분 단위, 백엔드: Integer)
-  availableTime: number;
+  availableTime: number | null;
   
   // 근무 지역
   workArea: string;      // 백엔드: String
@@ -68,10 +68,10 @@ export interface WorkConditions {
   transportation: string;
   
   // 점심시간 (분 단위, 백엔드: Integer)
-  lunchBreak: number;
+  lunchBreak: number | null;
   
   // 버퍼 시간 (분 단위, 백엔드: Integer)
-  bufferTime: number;
+  bufferTime: number | null;
   
   // 지원 가능 질환 (백엔드: Set<Disease>)
   supportedConditions: Disease[];
@@ -86,3 +86,54 @@ export interface WorkConditions {
   // 서비스 유형 (백엔드: Set<ServiceType>)
   serviceTypes: ServiceType[];
 }
+
+// 매칭 서버에서 받는 데이터 형식 (언더스코어 사용)
+export interface MatchingServerWorkConditions {
+  caregiver_preference_id?: string;
+  day_of_week: string[];
+  work_start_time: string | null;
+  work_end_time: string | null;
+  work_min_time: number | null;
+  work_max_time: number | null;
+  available_time: number | null;
+  work_area: string;
+  address_type: string;
+  location: {
+    latitude: number;
+    longitude: number;
+  };
+  transportation: string;
+  lunch_break: number | null;
+  buffer_time: number | null;
+  supported_conditions: string[];
+  preferred_min_age: number;
+  preferred_max_age: number;
+  preferred_gender: string;
+  service_types: string[];
+}
+
+// 매칭 서버 데이터를 프론트엔드 타입으로 변환하는 함수
+export const convertMatchingServerToWorkConditions = (
+  matchingData: MatchingServerWorkConditions
+): WorkConditions => {
+  return {
+    caregiverPreferenceId: matchingData.caregiver_preference_id,
+    dayOfWeek: matchingData.day_of_week.map(day => day as DayOfWeek),
+    workStartTime: matchingData.work_start_time,
+    workEndTime: matchingData.work_end_time,
+    workMinTime: matchingData.work_min_time,
+    workMaxTime: matchingData.work_max_time,
+    availableTime: matchingData.available_time,
+    workArea: matchingData.work_area,
+    addressType: matchingData.address_type as AddressType,
+    location: matchingData.location,
+    transportation: matchingData.transportation,
+    lunchBreak: matchingData.lunch_break,
+    bufferTime: matchingData.buffer_time,
+    supportedConditions: matchingData.supported_conditions.map(condition => condition as Disease),
+    preferredMinAge: matchingData.preferred_min_age,
+    preferredMaxAge: matchingData.preferred_max_age,
+    preferredGender: matchingData.preferred_gender as PreferredGender,
+    serviceTypes: matchingData.service_types.map(type => type as ServiceType),
+  };
+};

@@ -1,6 +1,7 @@
 // API 설정 관리
 export const API_CONFIG = {
   BASE_URL: 'http://localhost:8080/api', // 백엔드 서버 URL
+  MATCHING_SERVER_URL: 'http://localhost:8000', // 매칭 서버 URL
   TIMEOUT: 10000, // 요청 타임아웃 (10초)
   RETRY_ATTEMPTS: 3, // 재시도 횟수
 } as const;

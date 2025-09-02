@@ -27,7 +27,10 @@ export default function PreferredAgeSelector({
       <Flex justify="between" align="center">
         <Text size="3" weight="medium">돌봄 선호 연령</Text>
         <Text size="3" weight="medium">
-          {workConditions.preferredMinAge}세 ~ {workConditions.preferredMaxAge}세
+          {workConditions.preferredMinAge && workConditions.preferredMaxAge
+            ? `${workConditions.preferredMinAge}세 ~ ${workConditions.preferredMaxAge}세`
+            : "상관없음"
+          }
         </Text>
       </Flex>
     </button>

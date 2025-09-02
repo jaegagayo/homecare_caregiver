@@ -39,10 +39,10 @@ export default function NaturalLanguageInput({
       </Card>
 
       <TextArea
-        placeholder="평일 오전 9시부터 6시까지 강남구, 서초구에서 방문요양 하고 싶어요. 시급은 15만원 정도면 좋겠고, 치매 케어 경험이 있어요."
+        placeholder="주말엔 제가 일을 못 하고요, 평일엔 오후 두 시부터 저녁 여덟 시까지만 할 수 있어요. 하루에 짧게는 두 시간, 길어도 여섯 시간 정도가 딱 좋아요. 근무지는 강남역 근처였으면 하고, 이동은 지하철만 타요. 점심시간은 따로 없어도 되고, 시작하기 전에 한 삼십 분 정도 여유만 있으면 좋겠네요. 저는 60세에서 85세 사이 여성분들이랑 같이 일하는 게 편하고, 원하는 일은 재가 요양 서비스예요."
         value={naturalInput}
         onChange={(e) => setNaturalInput(e.target.value)}
-        className="min-h-32"
+        className="min-h-48 p-2"
       />
 
       <Button 

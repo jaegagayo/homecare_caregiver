@@ -27,7 +27,10 @@ export default function TimeRangeSelector({
       <Flex justify="between" align="center">
         <Text size="3" weight="medium">근무 가능 시간</Text>
         <Text size="3" weight="medium">
-          {workConditions.workStartTime} ~ {workConditions.workEndTime}
+          {workConditions.workStartTime && workConditions.workEndTime 
+            ? `${workConditions.workStartTime} ~ ${workConditions.workEndTime}`
+            : "상관없음"
+          }
         </Text>
       </Flex>
     </button>

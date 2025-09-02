@@ -5,9 +5,9 @@ import { useState } from "react";
 interface DurationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  currentMinDuration: number;
-  currentMaxDuration: number;
-  onSave: (minDuration: number, maxDuration: number) => void;
+  currentMinDuration: number | null | undefined;
+  currentMaxDuration: number | null | undefined;
+  onSave: (minDuration: number | null, maxDuration: number | null) => void;
   onCancel: () => void;
 }
 
@@ -19,10 +19,23 @@ export default function DurationDialog({
   onSave,
   onCancel
 }: DurationDialogProps) {
-  const [minDuration, setMinDuration] = useState(currentMinDuration.toString());
-  const [maxDuration, setMaxDuration] = useState(currentMaxDuration.toString());
+  // currentMinDuration과 currentMaxDuration이 null이나 undefined일 경우 "상관없음" 표시
+  const isMinNull = currentMinDuration === null || currentMinDuration === undefined;
+  const isMaxNull = currentMaxDuration === null || currentMaxDuration === undefined;
+  const [minDuration, setMinDuration] = useState(
+    isMinNull ? "상관없음" : currentMinDuration.toString()
+  );
+  const [maxDuration, setMaxDuration] = useState(
+    isMaxNull ? "상관없음" : currentMaxDuration.toString()
+  );
 
   const handleSave = () => {
+    // "상관없음"인 경우 null로 저장
+    if (minDuration === "상관없음" || maxDuration === "상관없음") {
+      onSave(null, null);
+      return;
+    }
+    
     const min = parseInt(minDuration);
     const max = parseInt(maxDuration);
     if (!isNaN(min) && !isNaN(max) && min <= max && min > 0 && max <= 24) {
@@ -31,11 +44,23 @@ export default function DurationDialog({
   };
 
   const handleMinDurationChange = (value: string) => {
+    // "상관없음" 입력 허용
+    if (value === "상관없음") {
+      setMinDuration(value);
+      return;
+    }
+    
     const numValue = value.replace(/[^0-9]/g, '');
     setMinDuration(numValue);
   };
 
   const handleMaxDurationChange = (value: string) => {
+    // "상관없음" 입력 허용
+    if (value === "상관없음") {
+      setMaxDuration(value);
+      return;
+    }
+    
     const numValue = value.replace(/[^0-9]/g, '');
     setMaxDuration(numValue);
   };

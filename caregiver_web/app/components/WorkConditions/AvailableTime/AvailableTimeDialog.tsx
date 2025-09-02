@@ -5,8 +5,8 @@ import { useState } from "react";
 interface AvailableTimeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  currentAvailableTime: number;
-  onSave: (availableTime: number) => void;
+  currentAvailableTime: number | null | undefined;
+  onSave: (availableTime: number | null) => void;
   onCancel: () => void;
 }
 
@@ -17,9 +17,19 @@ export default function AvailableTimeDialog({
   onSave,
   onCancel
 }: AvailableTimeDialogProps) {
-  const [availableTime, setAvailableTime] = useState(currentAvailableTime.toString());
+  // currentAvailableTime이 null이나 undefined일 경우 "상관없음" 표시
+  const isNullValue = currentAvailableTime === null || currentAvailableTime === undefined;
+  const [availableTime, setAvailableTime] = useState(
+    isNullValue ? "상관없음" : currentAvailableTime.toString()
+  );
 
   const handleSave = () => {
+    // "상관없음"인 경우 null로 저장
+    if (availableTime === "상관없음") {
+      onSave(null);
+      return;
+    }
+    
     const time = parseInt(availableTime);
     if (!isNaN(time) && time >= 0) {
       onSave(time);
@@ -27,6 +37,12 @@ export default function AvailableTimeDialog({
   };
 
   const handleAvailableTimeChange = (value: string) => {
+    // "상관없음" 입력 허용
+    if (value === "상관없음") {
+      setAvailableTime(value);
+      return;
+    }
+    
     const numValue = value.replace(/[^0-9]/g, '');
     setAvailableTime(numValue);
   };

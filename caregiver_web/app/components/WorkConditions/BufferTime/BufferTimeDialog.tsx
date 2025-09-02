@@ -5,8 +5,8 @@ import { useState } from "react";
 interface BufferTimeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  currentBufferTime: number;
-  onSave: (bufferTime: number) => void;
+  currentBufferTime: number | null | undefined;
+  onSave: (bufferTime: number | null) => void;
   onCancel: () => void;
 }
 
@@ -17,9 +17,19 @@ export default function BufferTimeDialog({
   onSave,
   onCancel
 }: BufferTimeDialogProps) {
-  const [bufferTime, setBufferTime] = useState(currentBufferTime.toString());
+  // currentBufferTime이 null이나 undefined일 경우 "상관없음" 표시
+  const isNullValue = currentBufferTime === null || currentBufferTime === undefined;
+  const [bufferTime, setBufferTime] = useState(
+    isNullValue ? "상관없음" : currentBufferTime.toString()
+  );
 
   const handleSave = () => {
+    // "상관없음"인 경우 null로 저장
+    if (bufferTime === "상관없음") {
+      onSave(null);
+      return;
+    }
+    
     const time = parseInt(bufferTime);
     if (!isNaN(time) && time >= 0) {
       onSave(time);
@@ -27,6 +37,12 @@ export default function BufferTimeDialog({
   };
 
   const handleBufferTimeChange = (value: string) => {
+    // "상관없음" 입력 허용
+    if (value === "상관없음") {
+      setBufferTime(value);
+      return;
+    }
+    
     const numValue = value.replace(/[^0-9]/g, '');
     setBufferTime(numValue);
   };

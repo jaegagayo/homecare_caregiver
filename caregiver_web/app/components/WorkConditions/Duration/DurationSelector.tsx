@@ -27,7 +27,10 @@ export default function DurationSelector({
       <Flex justify="between" align="center">
         <Text size="3" weight="medium">1회 최소·최대 근무시간</Text>
         <Text size="3" weight="medium">
-          {workConditions.workMinTime}시간 ~ {workConditions.workMaxTime}시간
+          {workConditions.workMinTime && workConditions.workMaxTime
+            ? `${workConditions.workMinTime}시간 ~ ${workConditions.workMaxTime}시간`
+            : "상관없음"
+          }
         </Text>
       </Flex>
     </button>

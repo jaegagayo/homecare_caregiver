@@ -26,7 +26,9 @@ export default function BufferTimeSelector({
     >
       <Flex justify="between" align="center">
         <Text size="3" weight="medium">이동 시간 제외 사이 버퍼 간격</Text>
-        <Text size="3" weight="medium">{workConditions.bufferTime}분</Text>
+        <Text size="3" weight="medium">
+          {workConditions.bufferTime ? `${workConditions.bufferTime}분` : "상관없음"}
+        </Text>
       </Flex>
     </button>
   );

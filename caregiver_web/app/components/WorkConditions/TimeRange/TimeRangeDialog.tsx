@@ -5,9 +5,9 @@ import { useState } from "react";
 interface TimeRangeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  currentStartTime: string;
-  currentEndTime: string;
-  onSave: (startTime: string, endTime: string) => void;
+  currentStartTime: string | null | undefined;
+  currentEndTime: string | null | undefined;
+  onSave: (startTime: string | null, endTime: string | null) => void;
   onCancel: () => void;
 }
 
@@ -19,11 +19,21 @@ export default function TimeRangeDialog({
   onSave,
   onCancel
 }: TimeRangeDialogProps) {
-  const [startTime, setStartTime] = useState(currentStartTime);
-  const [endTime, setEndTime] = useState(currentEndTime);
+  // currentStartTime과 currentEndTime이 null이나 undefined일 경우 "상관없음" 표시
+  const isStartNull = currentStartTime === null || currentStartTime === undefined;
+  const isEndNull = currentEndTime === null || currentEndTime === undefined;
+  const [startTime, setStartTime] = useState(
+    isStartNull ? "상관없음" : currentStartTime
+  );
+  const [endTime, setEndTime] = useState(
+    isEndNull ? "상관없음" : currentEndTime
+  );
 
   const handleSave = () => {
-    onSave(startTime, endTime);
+    // "상관없음"인 경우 null로 저장
+    const finalStartTime = startTime === "상관없음" ? null : startTime;
+    const finalEndTime = endTime === "상관없음" ? null : endTime;
+    onSave(finalStartTime, finalEndTime);
   };
 
   const timeOptions = Array.from({ length: 24 }, (_, i) => {
@@ -53,6 +63,9 @@ export default function TimeRangeDialog({
             <Select.Root value={startTime} onValueChange={setStartTime}>
               <Select.Trigger />
               <Select.Content>
+                <Select.Item key="상관없음" value="상관없음">
+                  상관없음
+                </Select.Item>
                 {timeOptions.map((time) => (
                   <Select.Item key={time} value={time}>
                     {time}
@@ -65,6 +78,9 @@ export default function TimeRangeDialog({
             <Select.Root value={endTime} onValueChange={setEndTime}>
               <Select.Trigger />
               <Select.Content>
+                <Select.Item key="상관없음" value="상관없음">
+                  상관없음
+                </Select.Item>
                 {timeOptions.map((time) => (
                   <Select.Item key={time} value={time}>
                     {time}

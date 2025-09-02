@@ -1,5 +1,5 @@
 import { API_CONFIG, API_ENDPOINTS } from './config';
-import { WorkConditions } from '../types/workConditions';
+import { WorkConditions, MatchingServerWorkConditions, convertMatchingServerToWorkConditions } from '../types/workConditions';
 
 // 근무 조건 조회 API
 export const getWorkConditions = async (caregiverId: string): Promise<WorkConditions | null> => {
@@ -52,18 +52,18 @@ export const getWorkConditions = async (caregiverId: string): Promise<WorkCondit
   }
 };
 
-// 자연어 분석 API
+// 자연어 분석 API (매칭 서버 사용)
 export const analyzeNaturalLanguage = async (naturalInput: string): Promise<WorkConditions> => {
   try {
     const response = await fetch(
-      `${API_CONFIG.BASE_URL}/caregiver/preference/analyze`,
+      `${API_CONFIG.MATCHING_SERVER_URL}/converting/convert`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          naturalInput: naturalInput.trim(),
+          non_structured_data: naturalInput.trim(),
         }),
       }
     );
@@ -72,29 +72,10 @@ export const analyzeNaturalLanguage = async (naturalInput: string): Promise<Work
       throw new Error(`자연어 분석 실패: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data: MatchingServerWorkConditions = await response.json();
     
-    // 백엔드 응답을 프론트엔드 타입으로 변환
-    return {
-      caregiverPreferenceId: data.caregiverPreferenceId,
-      dayOfWeek: Array.from(data.dayOfWeek),
-      workStartTime: data.workStartTime,
-      workEndTime: data.workEndTime,
-      workMinTime: data.workMinTime,
-      workMaxTime: data.workMaxTime,
-      availableTime: data.availableTime,
-      workArea: data.workArea,
-      addressType: data.addressType,
-      location: data.location,
-      transportation: data.transportation,
-      lunchBreak: data.lunchBreak,
-      bufferTime: data.bufferTime,
-      supportedConditions: Array.from(data.supportedConditions),
-      preferredMinAge: data.preferredMinAge,
-      preferredMaxAge: data.preferredMaxAge,
-      preferredGender: data.preferredGender,
-      serviceTypes: Array.from(data.serviceTypes),
-    };
+    // 매칭 서버 응답을 프론트엔드 타입으로 변환
+    return convertMatchingServerToWorkConditions(data);
   } catch (error) {
     console.error('자연어 분석 실패:', error);
     throw error;

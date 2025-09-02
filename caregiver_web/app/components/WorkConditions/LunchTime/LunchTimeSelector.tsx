@@ -27,7 +27,12 @@ export default function LunchTimeSelector({
       <Flex justify="between" align="center">
         <Text size="3" weight="medium">점심시간</Text>
         <Text size="3" weight="medium">
-          {workConditions.lunchBreak > 0 ? `${workConditions.lunchBreak}분` : '포함 안함'}
+          {workConditions.lunchBreak && workConditions.lunchBreak > 0 
+            ? `${workConditions.lunchBreak}분` 
+            : workConditions.lunchBreak === null 
+              ? '상관없음' 
+              : '포함 안함'
+          }
         </Text>
       </Flex>
     </button>

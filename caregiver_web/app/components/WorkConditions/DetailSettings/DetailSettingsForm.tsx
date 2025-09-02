@@ -97,7 +97,7 @@ export default function DetailSettingsForm({
         {/* 이동 가능 시간 섹션 */}
         <ConditionItem
           label="이동 가능 시간"
-          value={`${workConditions.availableTime}분`}
+          value={workConditions.availableTime ? `${workConditions.availableTime}분` : "상관없음"}
           onClick={onAvailableTimeClick}
         />
 

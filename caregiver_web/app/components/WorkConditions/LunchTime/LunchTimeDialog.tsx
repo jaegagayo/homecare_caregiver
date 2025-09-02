@@ -6,8 +6,8 @@ interface LunchTimeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentIncluded: boolean;
-  currentDuration: number;
-  onSave: (included: boolean, duration: number) => void;
+  currentDuration: number | null | undefined;
+  onSave: (included: boolean, duration: number | null) => void;
   onCancel: () => void;
 }
 
@@ -20,9 +20,19 @@ export default function LunchTimeDialog({
   onCancel
 }: LunchTimeDialogProps) {
   const [included, setIncluded] = useState(currentIncluded);
-  const [duration, setDuration] = useState(currentDuration.toString());
+  // currentDuration이 null이나 undefined일 경우 "상관없음" 표시
+  const isNullValue = currentDuration === null || currentDuration === undefined;
+  const [duration, setDuration] = useState(
+    isNullValue ? "상관없음" : currentDuration.toString()
+  );
 
   const handleSave = () => {
+    // "상관없음"인 경우 null로 저장
+    if (duration === "상관없음") {
+      onSave(included, null);
+      return;
+    }
+    
     const durationNum = parseInt(duration);
     if (!isNaN(durationNum) && durationNum > 0) {
       onSave(included, durationNum);
@@ -30,6 +40,12 @@ export default function LunchTimeDialog({
   };
 
   const handleDurationChange = (value: string) => {
+    // "상관없음" 입력 허용
+    if (value === "상관없음") {
+      setDuration(value);
+      return;
+    }
+    
     const numValue = value.replace(/[^0-9]/g, '');
     setDuration(numValue);
   };
