@@ -4,6 +4,7 @@ interface NaturalLanguageInputProps {
   naturalInput: string;
   setNaturalInput: (value: string) => void;
   isAnalyzing: boolean;
+  analysisError?: string | null;
   onAnalyze: () => void;
   onDirectSetup: () => void;
 }
@@ -12,6 +13,7 @@ export default function NaturalLanguageInput({
   naturalInput,
   setNaturalInput,
   isAnalyzing,
+  analysisError = null,
   onAnalyze,
   onDirectSetup
 }: NaturalLanguageInputProps) {
@@ -51,6 +53,15 @@ export default function NaturalLanguageInput({
       >
         {isAnalyzing ? '분석 중...' : '분석하기'}
       </Button>
+
+      {/* 분석 에러 메시지 */}
+      {analysisError && (
+        <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
+          <Text size="2" color="red" className="text-center">
+            {analysisError}
+          </Text>
+        </div>
+      )}
 
       <div className="flex items-center justify-center my-4">
         <div className="flex-1 h-px bg-gray-300"></div>

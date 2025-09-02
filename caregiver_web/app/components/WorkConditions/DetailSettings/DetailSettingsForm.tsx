@@ -17,6 +17,8 @@ import {
 interface DetailSettingsFormProps {
   workConditions: WorkConditions;
   isFromAnalysis?: boolean;
+  isSaving?: boolean;
+  saveError?: string | null;
   onWorkDaysClick: () => void;
   onTimeRangeClick: () => void;
   onAvailableTimeClick: () => void;
@@ -36,6 +38,8 @@ interface DetailSettingsFormProps {
 export default function DetailSettingsForm({
   workConditions,
   isFromAnalysis = false,
+  isSaving = false,
+  saveError = null,
   onWorkDaysClick,
   onTimeRangeClick,
   onAvailableTimeClick,
@@ -171,17 +175,31 @@ export default function DetailSettingsForm({
       </Flex>
 
       <Flex gap="3" className="mt-4">
-        <Button onClick={onSave} className="flex-1">
-          조건 저장
+        <Button 
+          onClick={onSave} 
+          className="flex-1"
+          disabled={isSaving}
+        >
+          {isSaving ? '저장 중...' : '조건 저장'}
         </Button>
         <Button
           variant="outline"
           onClick={onBackToNatural}
           className="flex-1"
+          disabled={isSaving}
         >
           자연어 입력으로 돌아가기
         </Button>
       </Flex>
+
+      {/* 저장 에러 메시지 */}
+      {saveError && (
+        <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
+          <Text size="2" color="red" className="text-center">
+            {saveError}
+          </Text>
+        </div>
+      )}
     </Flex>
   );
 }

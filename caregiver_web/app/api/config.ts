@@ -35,6 +35,7 @@ export const API_ENDPOINTS = {
   WORK_CONDITIONS: {
     GET: '/caregiver/preference',
     CREATE: '/caregiver/preference',
+    UPDATE: '/caregiver/preference',
   },
   SETTLEMENT: {
     HISTORY: '/caregiver/my-page/settlement',

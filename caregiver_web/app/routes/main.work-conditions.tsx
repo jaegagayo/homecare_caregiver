@@ -18,7 +18,7 @@ import {
   AvailableTimeDialog
 } from "../components/WorkConditions";
 import { WorkConditions, DayOfWeek, ServiceType, Disease, PreferredGender, AddressType } from "../types/workConditions";
-import { getWorkConditions, saveWorkConditions } from "../api/workConditions";
+import { getWorkConditions, saveWorkConditions, analyzeNaturalLanguage } from "../api/workConditions";
 
 // localStorage에서 caregiverId를 가져오는 함수
 const getStoredCaregiverId = (): string => {
@@ -111,12 +111,21 @@ export default function WorkConditionsPage() {
   }, []);
 
   const handleAnalyze = async () => {
-    setIsAnalyzing(true);
-    // TODO: 실제 AI 분석 로직 구현
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setIsAnalyzing(false);
-    setIsFromAnalysis(true);
-    setActiveTab('result');
+    try {
+      setIsAnalyzing(true);
+      setSaveError(null);
+      
+      // 자연어 분석 API 호출
+      const analyzedConditions = await analyzeNaturalLanguage(naturalInput);
+      setWorkConditions(analyzedConditions);
+      setIsFromAnalysis(true);
+      setActiveTab('result');
+    } catch (err) {
+      console.error('자연어 분석 실패:', err);
+      setSaveError('자연어 분석에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const handleWorkDaysClick = () => {
@@ -182,34 +191,42 @@ export default function WorkConditionsPage() {
     setIsWorkDaysDialogOpen(false);
   };
 
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
   const handleSave = async () => {
     try {
+      setIsSaving(true);
+      setSaveError(null);
+      
       const caregiverId = getStoredCaregiverId();
       if (!caregiverId) {
-        setError('로그인이 필요합니다.');
+        setSaveError('로그인이 필요합니다.');
         return;
       }
 
       if (isInitialSetup) {
-        // 회원가입 시에만 API 호출
-        await saveWorkConditions(caregiverId, workConditions);
+        // 회원가입 시: POST 요청으로 근무 조건 생성
+        await saveWorkConditions(caregiverId, workConditions, false);
         // 로컬 스토리지에 저장 완료 표시
         localStorage.setItem('work_conditions_saved', 'true');
         // 승인 대기 페이지로 이동
         navigate("/main/approval-waiting");
       } else {
-        // 마이페이지에서 수정 시에는 API 호출하지 않음
-        // 개발용 안내 문구 표시
-        alert('개발용 안내: 마이페이지 수정 시에는 백엔드 API가 호출되지 않습니다. 백엔드 팀에서 수정용 API 개발 완료 시 연동 예정입니다.');
-        
+        // 마이페이지에서 수정 시: PUT 요청으로 근무 조건 수정
+        await saveWorkConditions(caregiverId, workConditions, true);
         // 로컬 스토리지에 저장 완료 표시
         localStorage.setItem('work_conditions_saved', 'true');
+        // 성공 메시지 표시
+        alert('근무 조건이 성공적으로 수정되었습니다.');
         // 메인 페이지로 돌아가기
         navigate("/main/home");
       }
     } catch (err) {
       console.error('근무 조건 저장 실패:', err);
-      setError('근무 조건 저장에 실패했습니다.');
+      setSaveError('근무 조건 저장에 실패했습니다.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -243,6 +260,7 @@ export default function WorkConditionsPage() {
             naturalInput={naturalInput}
             setNaturalInput={setNaturalInput}
             isAnalyzing={isAnalyzing}
+            analysisError={saveError}
             onAnalyze={handleAnalyze}
             onDirectSetup={() => setActiveTab('result')}
           />
@@ -253,6 +271,8 @@ export default function WorkConditionsPage() {
           <DetailSettingsForm
             workConditions={workConditions}
             isFromAnalysis={isFromAnalysis}
+            isSaving={isSaving}
+            saveError={saveError}
             onWorkDaysClick={handleWorkDaysClick}
             onTimeRangeClick={() => setIsTimeRangeDialogOpen(true)}
             onAvailableTimeClick={() => setIsAvailableTimeDialogOpen(true)}
